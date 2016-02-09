@@ -1,3 +1,6 @@
+import * as rng from '../server/rng'
+window.rng = rng;
+
 // Start serve
 let worker = new Worker('./server/index.js');
 window.worker = worker;

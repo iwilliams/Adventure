@@ -1,3 +1,5 @@
+import * as rng from './rng'
+
 // Posible Monsters
 let monsters = [
     (() => {
@@ -31,119 +33,166 @@ function getInitialGameState() {
     return {
         running: true,
         enemiesKilled: 0,
-        rooms: 0,
+        floor: generateFloor(),
+        currentRoom: 0,
         player: {
             'name': '',
             'hp': 400,
             'mp': 50,
             'actions': ['attack', 'investigate', 'move']
+        },
+        getCurrentRoom() {
+            return this.floor.rooms[this.currentRoom];
         }
     }
 }
 let game = getInitialGameState();
 
-// Copied from MDN
-function getRandomInt(min, max) {
-    return Math.floor(Math.random() * (max - min)) + min;
-}
-
-function d6() {
-    return getRandomInt(0, 7);
-}
-
-function d10() {
-    return getRandomInt(0, 11);
-}
-
-function d20() {
-    return getRandomInt(0, 21);
-}
 
 // Generate random room
-function getRandomRoom() {
-    let numMonsters = getRandomInt(0, 4);
-    let roomMonsters    = [];
+function getRandomRoom(idx) {
+    let room = {};
 
-    for(let i = 0; i < numMonsters; i++) {
-        roomMonsters.push(monsters[getRandomInt(0, monsters.length)]());
+    // Set room description
+    let descriptions = [
+        'A torch mounted on the wall, flickers in darkness.',
+        'Chains hang from the wall, a pile of bones lay beneath.',
+        'From the ceiling water leaks forming a puddle at your feet.'
+    ];
+    room.description = rng.getRandomElement(descriptions);
+
+    // Determine monsters
+    room.monsters = [];
+    if(idx) {
+        let numMonsters = rng.randomRange(0, 4);
+        let roomMonsters    = [];
+        for(let i = 0; i < numMonsters; i++) {
+            roomMonsters.push(rng.getRandomElement(monsters)());
+        }
+        room.monsters = roomMonsters;
+    }
+
+    return room;
+}
+
+// Generate Floor
+function generateFloor() {
+    let rooms = [];
+    let numRooms = rng.randomRange(3, 8);
+
+    for(let i = 0; i < numRooms; i++) {
+        rooms.push(getRandomRoom(i));
     }
 
     return {
-        'numMonsters': numMonsters,
-        'monsters': roomMonsters,
-        'description': 'You are standing in a dank dungeon.'
+        'rooms': rooms
     }
 }
 
 // Start game
-game.room = getRandomRoom();
-postMessage(game.room.description);
+postMessage(game.getCurrentRoom().description);
 
 // Handle actions
 onmessage = function(e) {
     let message = e.data;
-
     if(message.action === 'investigate') {
-        if(message.target === undefined) {
-            let numMonsters = game.room.monsters.length;
-            postMessage(`There ${(numMonsters == 1 ? 'is' : 'are')} ${numMonsters} monster${(numMonsters == 1 ? '': 's')} in the room.`);
-        } else {
-            let badie = game.room.monsters[message.target];
-            postMessage(`You examine the ${badie.name}. ${game.room.monsters[message.target].description}.`);
-            postMessage(`Health: ${badie.hp}`);
-        }
-    } else if(message.action === 'move') {
-        game.room = getRandomRoom();
-        postMessage(game.room.description);
-    } else if(message.action === 'attack') {
-        if(message.target === undefined) {
-            postMessage(`You swing wildly!`);
-            let numMonsters = game.room.monsters.length;
+        let currentRoom = game.getCurrentRoom();
+        postMessage(currentRoom.description);
 
-            if(numMonsters) {
-                let randomMonster = game.room.monsters[getRandomInt(0, numMonsters)];
-                randomMonster.hp -= 30;
-                if(randomMonster.hp <= 0) {
-                    postMessage(`You slay the ${randomMonster.name}`);
-                    game.room.monsters.splice(game.room.monsters.indexOf(randomMonster), 1);
-                } else {
-                    postMessage(`You damage the ${randomMonster.name}`);
-                }
-
+        if(message.target === undefined) {
+            if(currentRoom.monsters.length) {
+                let numMonsters = currentRoom.monsters.length;
+                postMessage(`There ${(numMonsters == 1 ? 'is' : 'are')} ${numMonsters} monster${(numMonsters == 1 ? '': 's')} in the room.`);
             } else {
-                postMessage(`Theres nothing to hit...`);
+                postMessage('Nothing to see here...');
             }
         } else {
-            let monster = game.room.monsters[message.target];
-            monster.hp -= 30;
-            if(monster.hp <= 0) {
-                postMessage(`You slay the ${monster.name}`);
-                game.room.monsters.splice(game.room.monsters.indexOf(monster), 1);
+            let badie = currentRoom.monsters[message.target];
+            if(badie) {
+                postMessage(`You examine the ${badie.name}. ${badie.description}.`);
+                postMessage(`Health: ${badie.hp}`);
             } else {
-                postMessage(`You damage the ${monster.name}`);
+                postMessage('Invalid target.');
+            }
+        }
+    } else if(message.action === 'move') {
+        // Check if monsters are present.
+        if(game.getCurrentRoom().monsters.length) {
+            postMessage('You try to escape...');
+
+            if(!(rng.d20() >= 15)) {
+                postMessage('The monsters block your path!');
+                return;
+            }
+        }
+
+        game.currentRoom++;
+        if(game.currentRoom === game.floor.rooms.length) {
+            postMessage('You Win!');
+            game.running = false;
+        } else {
+            postMessage(game.getCurrentRoom().description);
+        }
+    } else if(message.action === 'attack') {
+        let target = null;
+
+        // Do we have a target in mind?
+        if(message.target === undefined) {
+            postMessage(`You swing wildly!`);
+
+            // If there are targets attack one of them.
+            if(game.getCurrentRoom().monsters.length) {
+                target = rng.getRandomElement(game.getCurrentRoom().monsters);
+            }
+        } else {
+            target = game.getCurrentRoom().monsters[message.target];
+        }
+
+        // If we have found a valid target, then attack it.
+        if(target) {
+            let damage = rng.d20() * rng.d4();
+
+            target.hp -= damage;
+
+            postMessage(`You hit the ${target.name} for ${damage} damage!`);
+
+            if(target.hp <= 0) {
+                postMessage(`You slay the ${target.name}`);
+                game.getCurrentRoom()
+                    .monsters.splice(game.getCurrentRoom().monsters.indexOf(target), 1);
+            }
+        } else {
+            if(message.target === undefined) {
+                postMessage('Invalid target.');
+            } else {
+                postMessage('There is nothing to attack...');
             }
         }
     } else if (message.action === 'restart') {
         game = getInitialGameState();
-        game.room = getRandomRoom();
     } else if (message.action === 'status') {
         postMessage(`Your HP is ${game.player.hp}`);
     }
 }
 
 setInterval(() => {
-    if(game.running && game.room.monsters.length) {
-        let roll = d10();
-        let numMonsters = game.room.monsters.length;
-        if(roll > 5) {
-            let attackingMonster = game.room.monsters[getRandomInt(0, numMonsters)];
-            postMessage(`The ${attackingMonster.name} attacks!`);
-            game.player.hp -= 20;
-            if(game.player.hp <= 0) {
-                postMessage(`<p style="color: red">You defeated. R.I.P. in peace.</p>`);
-                game.running = false;
-            } else {
-                postMessage(`<p style="color:red" >You taste the pain. HP: ${game.player.hp}</p>`);
+    // Check if the game is still in progress.
+    if(game.running) {
+        let monsters = game.getCurrentRoom().monsters;
+
+        if(monsters.length) {
+            let roll = rng.d10();
+            if(roll > 5) {
+                let attackingMonster = rng.getRandomElement(monsters);
+                postMessage(`The ${attackingMonster.name} attacks!`);
+                game.player.hp -= rng.d4() * rng.d10();
+
+                if(game.player.hp <= 0) {
+                    postMessage(`<p style="color: red">You defeated. R.I.P. in peace.</p>`);
+                    game.running = false;
+                } else {
+                    postMessage(`<p style="color:red" >You taste the pain. HP: ${game.player.hp}</p>`);
+                }
             }
         }
     }
