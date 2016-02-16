@@ -19,6 +19,12 @@ export function d20() {
     return randomRange(1, 21);
 }
 
-export function getRandomElement(collection) {
-    return collection[randomRange(0, collection.length)];
+export function getRandomElement(collection, exclude = []) {
+    let values = collection;
+    if(exclude) {
+        values = values.filter(elem => {
+            return exclude.indexOf(elem) === -1
+        });
+    }
+    return values[randomRange(0, values.length)];
 }
