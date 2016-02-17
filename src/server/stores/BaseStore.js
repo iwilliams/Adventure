@@ -18,7 +18,7 @@ export default class BaseStore {
         this._dispatchToken = dispatcher.register(payload => {
             this.__invokeOnDispatch(payload);
         });
-        postMessage([0, JSON.stringify(this._state)]);
+        //postMessage([0, JSON.stringify(this._state)]);
     }
 
     getState() {
@@ -44,7 +44,7 @@ export default class BaseStore {
 
         if(this.__changed) {
             let patch = diff(startState, endState);
-            postMessage([1, JSON.stringify(patch)]);
+            //postMessage([1, JSON.stringify(patch)]);
             this._state = endState;
         }
     }

@@ -7,16 +7,6 @@ import * as MessageTypes    from '../shared/constants/MessageConstants';
 let worker = new Worker('./server/index.js');
 window.worker = worker;
 
-// Append Canvas
-var canvas      = document.createElement('canvas');
-canvas.width    = 200;
-canvas.height   = 150;
-document.body.appendChild(canvas);
-
-var ctx         = canvas.getContext('2d');
-ctx.imageSmoothingEnabled = false;
-
-
 var state = null;
 worker.onmessage = function(e) {
     let messageType  = e.data[0];
@@ -44,26 +34,11 @@ worker.onmessage = function(e) {
 
     // Just re render every time now
     if(stateChange) {
-        render();
+        //render();
     }
 
     console.log(state.toJS());
 }
-
-function render() {
-    let renderState = state.toJS();
-
-    let {floor, player, roomIndex} = renderState;
-    let currentRoom = floor.rooms[roomIndex];
-
-    ctx.fillStyle   = '#ffffff';
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-    ctx.fillStyle   = '#000000'
-    ctx.fillText(currentRoom.description, 0, 10, canvas.width);
-
-    console.log(currentRoom.description);
-}
-
 
 window.investigate = function(target) {
     let {floor, player, roomIndex} = state.toJS();

@@ -2,13 +2,11 @@ import BaseStore        from './BaseStore';
 import Immutable        from 'immutable';
 import gameDispatcher   from '../dispatcher/GameDispatcher';
 
-class PlayerStore extends BaseStore {
-
+export default class PlayerStore extends BaseStore {
     getInitialState() {
-        return Immutable.Map({
-            'name': '',
-            'hp': 400,
-            'mp': 50
+        return Immutable.fromJS({
+            'xPos': 0,
+            'yPos': 0,
         });
     }
 
@@ -19,10 +17,11 @@ class PlayerStore extends BaseStore {
         let {action} = payload;
 
         switch(action) {
+            case 'move':
+                state = state.updateIn(['xPos'], value => ++value);
+                break;
         }
 
         return state;
     }
 }
-
-export default new PlayerStore(gameDispatcher);

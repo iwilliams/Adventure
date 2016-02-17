@@ -1,11 +1,7 @@
 import BaseStore        from './BaseStore';
-import {monsters}       from '../monster';
-import {generateFloor}  from '../dungeon';
-import * as rng         from '../rng';
 import Immutable        from 'immutable';
-import gameDispatcher   from '../dispatcher/GameDispatcher';
 
-class GameStore extends BaseStore {
+export default class GameStore extends BaseStore {
 
     getInitialState() {
         return Immutable.Map({
@@ -33,5 +29,3 @@ class GameStore extends BaseStore {
         return state;
     }
 }
-
-export default new GameStore(gameDispatcher);
