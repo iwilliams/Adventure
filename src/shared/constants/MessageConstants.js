@@ -1,2 +1,18 @@
-export const NEW_STATE      = 0;
-export const PATCH_STATE    = 1;
+let constIterator = 0;
+
+/**
+ * Client messages
+ */
+export const CLIENT_CONNECT     = constIterator++;
+export const CLIENT_DISCONNECT  = constIterator++;
+
+/**
+ * Store messages
+ */
+export const CREATE_STORE       = constIterator++;
+export const PATCH_STORE        = constIterator++;
+
+/**
+ * Player messages
+ */
+export const PLAYER_INPUT        = constIterator++;

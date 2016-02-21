@@ -20,7 +20,6 @@ export default class GameStore extends BaseStore {
 
         switch(action) {
             case 'move':
-
                 break;
             case 'attack':
                 break;

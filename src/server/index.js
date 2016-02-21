@@ -1,43 +1,85 @@
-// Es6 imports
-import gameDispatcher from './dispatcher/GameDispatcher';
+import MainLoop             from '../shared/mainloop';
+import StoreFactory         from '../shared/services/StoreFactory';
+import gameDispatcher       from '../shared/dispatcher/GameDispatcher';
 
-// Import Stores
-// import GameStore from './stores/GameStore';
-import PlayerStore from './stores/PlayerStore';
+import * as GameConstants   from '../shared/constants/GameConstants';
+import * as Stores          from '../shared/constants/StoreConstants';
+import * as MessageTypes    from '../shared/constants/MessageConstants';
 
-let playerStore = new PlayerStore(gameDispatcher);
-
-
-// Start game
-//onmessage = e => gameDispatcher.dispatch(e.data);
-
-const FPS = 30;
-// Taken from: http://nokarma.org/2011/02/02/javascript-game-development-the-game-loop/
-let run = (function() {
-    var frame = 0;
-    var loops = 0, skipTicks = 1000 / FPS,
-    maxFrameSkip = 10,
-    nextGameTick = (new Date).getTime();
-
-    return function() {
-        loops = 0;
-
-        while ((new Date).getTime() > nextGameTick && loops < maxFrameSkip) {
-            tick(frame);
-            frame = ++frame % FPS;
-            nextGameTick += skipTicks;
-            loops++;
-        }
-    };
-})();
-
-// Start the game loop
-let intervalId = setInterval(run, 1000/FPS/2);
+let playerStore = StoreFactory.create(Stores.PLAYER_STORE);
+let floorStore  = StoreFactory.create(Stores.FLOOR_STORE);
 
 function tick(frame) {
-    gameDispatcher.dispatch({
-        'action': 'move'
-    });
+    let playerState = playerStore.getState();
+    let floorState  = floorStore.getState();
 
-    console.log(playerStore.getState().toJS());
+    let canMove     = true;
+    let playerDir   = playerState.get('dir');
+    let newPos      = [playerState.get('xPos'), playerState.get('yPos')];
+
+    switch(playerDir) {
+        case 'e':
+            newPos[0] += 1;
+            break;
+        case 'w':
+            newPos[0] -= 1;
+            break;
+        case 'n':
+            newPos[1] -= 1;
+            break;
+        case 's':
+            newPos[1] += 1;
+            break;
+    }
+
+    if(newPos[0] < floorState.get('width')
+            && newPos[0] >= 0
+            && newPos[1] < floorState.get('height')
+            && newPos[1] >= 0) {
+
+        for(let i = 0; i < playerState.get('tail').size; i++) {
+            let tailSegment = playerState.getIn(['tail', i]);
+
+            if(newPos[0] === tailSegment[0] && newPos[1] === tailSegment[1]) {
+                canMove = false;
+                break;
+            }
+        }
+    } else {
+        canMove = false;
+    }
+
+    if(canMove) {
+        gameDispatcher.dispatch({
+            'action': 'move'
+        });
+    } else {
+        gameDispatcher.dispatch({
+            'action': 'restart'
+        });
+    }
+
+    if(playerState.get('xPos') === floorState.get('dotX') && playerState.get('yPos') === floorState.get('dotY')) {
+        gameDispatcher.dispatch({
+            'action': 'eat'
+        });
+    }
+}
+MainLoop.setSimulationFPS(GameConstants.SIMULATION_FPS);
+MainLoop.setUpdate(tick).start();
+
+onmessage = function(e) {
+    let data         = e.data;
+    let messageType  = data.shift();
+    let payload      = data;
+
+    // MessageType constants make this a bit more clear
+    switch(messageType) {
+        case MessageTypes.PLAYER_INPUT:
+            gameDispatcher.dispatch({
+                'action': 'dir',
+                'data': payload[0]
+            });
+            break;
+    }
 }

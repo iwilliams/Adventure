@@ -5,24 +5,43 @@
  *
  * I need to do customer emmiter stuff so I'm just taking the snippets I need
  */
-
-import gameDispatcher   from '../dispatcher/GameDispatcher';
-import diff             from 'immutablediff';
-import Immutable        from 'immutable';
+import immutablediff            from 'immutablediff';
+import immutablepatch           from 'immutablepatch';
+import Immutable                from 'immutable';
+import * as MessageConstants    from '../constants/MessageConstants';
 
 export default class BaseStore {
-    constructor(dispatcher) {
+    constructor(id, dispatcher, state) {
+        this.__id           = id;
         this.__dispatcher   = dispatcher;
         this.__changed      = false;
-        this._state         = this.getInitialState();
+        this._state         = state || this.getInitialState();
         this._dispatchToken = dispatcher.register(payload => {
             this.__invokeOnDispatch(payload);
         });
-        //postMessage([0, JSON.stringify(this._state)]);
     }
 
+    get id() { return this.__id }
+
+    /**
+     * Reduce the state
+     */
+    reduce() {
+        throw "You must impliment reduce()";
+    }
+
+    /**
+     * Returns current state
+     */
     getState() {
         return this._state;
+    }
+
+    /**
+     * Patch State
+     */
+    patchState(patch) {
+        this._state = immutablepatch(this.getState(), patch);
     }
 
     /**
@@ -33,6 +52,9 @@ export default class BaseStore {
         return one === two;
     }
 
+    /**
+     * This will be called when a message is dispatched
+     */
     __invokeOnDispatch(payload) {
         this.__changed  = false;
         let startState  = this._state;
@@ -43,9 +65,14 @@ export default class BaseStore {
         }
 
         if(this.__changed) {
-            let patch = diff(startState, endState);
-            //postMessage([1, JSON.stringify(patch)]);
+            let patch = immutablediff(startState, endState);
             this._state = endState;
+
+            postMessage([
+                    MessageConstants.PATCH_STORE,
+                    this.id,
+                    JSON.stringify(patch)
+            ]);
         }
     }
 }
