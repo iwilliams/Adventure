@@ -153,16 +153,24 @@ function patchStore(payload) {
  */
 window.onkeydown = function(e) {
     switch(e.keyCode) {
+        case 65:
         case 72:
+        case 37:
             window.changeDir('w');
             break;
+        case 83:
         case 74:
+        case 40:
             window.changeDir('s');
             break;
+        case 87:
         case 75:
+        case 38:
             window.changeDir('n');
             break;
+        case 68:
         case 76:
+        case 39:
             window.changeDir('e');
             break;
     }
