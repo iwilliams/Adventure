@@ -7,31 +7,43 @@ let shouldGrow = false;
 /**
  * Helper move
  */
-function move(state) {
+let moveDelta = 0;
+function move(state, delta) {
     let dir = state.get('dir');
 
-    state = state.updateIn(['tail'], list => {
-        if(shouldGrow) {
-            shouldGrow = false;
-        } else {
-            list = list.shift();
-        }
-        return list.push([state.get('xPos'), state.get('yPos')])
-    });
+    moveDelta += delta;
+    let dist = 0;
+    let velocity = state.get('velocity');
+    if(moveDelta >= 1000/velocity) {
+        dist = 1;
+        moveDelta = 0;
+    }
 
-    switch(dir) {
-        case 'e':
-            state = state.updateIn(['xPos'], value => ++value);
-            break;
-        case 'w':
-            state = state.updateIn(['xPos'], value => --value);
-            break;
-        case 'n':
-            state = state.updateIn(['yPos'], value => --value);
-            break;
-        case 's':
-            state = state.updateIn(['yPos'], value => ++value);
-            break;
+    if(dist) {
+        state = state.updateIn(['tail'], list => {
+            if(shouldGrow) {
+                shouldGrow = false;
+            } else {
+                list = list.shift();
+            }
+            return list.push([state.get('xPos'), state.get('yPos')])
+        });
+
+
+        switch(dir) {
+            case 'e':
+                state = state.updateIn(['xPos'], value => value + dist);
+                break;
+            case 'w':
+                state = state.updateIn(['xPos'], value => value - dist);
+                break;
+            case 'n':
+                state = state.updateIn(['yPos'], value => value - dist);
+                break;
+            case 's':
+                state = state.updateIn(['yPos'], value => value + dist);
+                break;
+        }
     }
 
     return state;
@@ -84,7 +96,8 @@ export default class PlayerStore extends BaseStore {
             'yPos': 0,
             'dir': 'e',
             'tailLength': 1,
-            'tail': []
+            'tail': [[0, 0], [0, 0]],
+            'velocity': 20
         });
     }
 
@@ -96,17 +109,21 @@ export default class PlayerStore extends BaseStore {
 
         switch(action) {
             case 'move':
-                state = move(state);
+                state = move(state, data);
                 break;
             case 'dir':
                 state = changeDir(state, data);
+                //state = state.updateIn(['dir'], value => data);
                 break;
             case 'eat':
                 shouldGrow = true;
                 break;
             case 'restart':
                 state = this.getInitialState();
+                break;
         }
+
+        //console.log(state.get('velocity'));
 
         return state;
     }

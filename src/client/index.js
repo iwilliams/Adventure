@@ -44,20 +44,17 @@ document.body.appendChild(canvas);
 /**
  * Set Up Render Game
  */
-function render(frame) {
+function render(delta) {
+    //console.log(frame);
     ctx.fillStyle = "gray";
 
-    // Draw all tiles
-    for(let y = 0; y < GameConstants.GAME_WIDTH; y++) {
-        for(let x = 0; x < GameConstants.GAME_HEIGHT; x++) {
-            ctx.fillRect(...[
-                tileSize*x,
-                tileSize*y,
-                tileSize,
-                tileSize
-            ]);
-        }
-    }
+    // Draw Background
+    ctx.fillRect(...[
+        0,
+        0,
+        tileSize*GameConstants.GAME_WIDTH,
+        tileSize*GameConstants.GAME_HEIGHT
+    ]);
 
     // Draw Dot
     if(floorStore) {

@@ -13,7 +13,7 @@ export const IS_SERVER = is_server;
 /**
  * Misc game configurations
  */
-export const SIMULATION_FPS = 20;
-export const GAME_WIDTH     = 20;
-export const GAME_HEIGHT    = 20;
-export const TILE_SIZE      = 50;
+export const SIMULATION_FPS = 30;
+export const GAME_WIDTH     = 40;
+export const GAME_HEIGHT    = 40;
+export const TILE_SIZE      = 25;
