@@ -1,0 +1,24 @@
+{
+  "name": "adventure",
+  "description": "",
+  "main": "index.js",
+  "authors": [
+    "iwilliams <ianwilliams633@gmail.com>"
+  ],
+  "license": "ISC",
+  "homepage": "https://github.com/iwilliams/Adventure",
+  "moduleType": [],
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "pixi.js": "^3.0.10"
+  },
+  "devDependencies": {
+    "pixi.js": "^3.0.10"
+  }
+}
