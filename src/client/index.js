@@ -38,7 +38,7 @@ let tileSize = GameConstants.TILE_SIZE;
 
 // You can use either `new PIXI.WebGLRenderer`, `new PIXI.CanvasRenderer`, or `PIXI.autoDetectRenderer`
 // which will try to choose the best renderer for the environment you are in.
-let renderer = new PIXI.WebGLRenderer(...[
+let renderer = new PIXI.CanvasRenderer(...[
     GameConstants.GAME_WIDTH * tileSize,
     GameConstants.GAME_HEIGHT * tileSize
 ]);
