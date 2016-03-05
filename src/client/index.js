@@ -53,7 +53,7 @@ document.body.appendChild(renderer.view);
 var stage = new PIXI.Container();
 var graphics = new PIXI.Graphics();
 stage.addChild(graphics);
-
+animate();
 function animate() {
 
     // set a fill
@@ -96,10 +96,10 @@ function animate() {
     }
 
     renderer.render(stage);
-    //requestAnimationFrame( animate );
+    requestAnimationFrame( animate );
 }
-MainLoop.setSimulationFPS(60);
-MainLoop.setUpdate().setDraw(animate).start();
+//MainLoop.setSimulationFPS(60);
+//MainLoop.setUpdate().setDraw(animate).start();
 
 
 
