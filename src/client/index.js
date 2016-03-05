@@ -56,8 +56,7 @@ stage.addChild(graphics);
 animate();
 
 function animate() {
-
-    requestAnimationFrame( animate );
+    graphics.clear();
 
     // set a fill
     graphics.beginFill(0xCCCCCC);
@@ -99,6 +98,7 @@ function animate() {
     }
 
     renderer.render(stage);
+    requestAnimationFrame( animate );
 }
 
 
