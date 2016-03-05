@@ -15,11 +15,7 @@ var bowerDir = function(dir) {
 };
 
 var includes = {
-    //keypress: bowerDir('Keypress/'),
-    //peerjs:   bowerDir('peerjs/'),
-    //seedrandom: bowerDir('seedrandom/'),
-    //howlerjs: bowerDir('howler.js/'),
-    //immutable: bowerDir('immutable/dist/')
+    pixi: bowerDir('pixi.js/bin/')
 };
 
 // Run webserver
@@ -64,11 +60,7 @@ defaultTasks.push('simulation-worker');
 // Vendor Scripts
 gulp.task('vendor-scripts', function() {
     return gulp.src([
-        //includes.keypress   + 'keypress-2.1.3.min.js',
-        //includes.peerjs     + 'peer.min.js',
-        //includes.seedrandom + 'seedrandom.js',
-        //includes.howlerjs   + 'howler.js',
-        //includes.immutable  + 'immutable.min.js'
+        includes.pixi  + 'pixi.min.js'
     ])
     .pipe(concat('vendor.js'))
     .pipe(uglify())

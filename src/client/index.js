@@ -35,32 +35,36 @@ worker.onmessage = function(e) {
  * Append canvas to body
  */
 let tileSize = GameConstants.TILE_SIZE;
-let canvas = document.createElement('canvas');
-canvas.width = GameConstants.GAME_WIDTH * tileSize;
-canvas.height = GameConstants.GAME_HEIGHT * tileSize;
-let ctx = canvas.getContext('2d');
-document.body.appendChild(canvas);
 
-/**
- * Set Up Render Game
- */
-function render(delta) {
-    //console.log(frame);
-    ctx.fillStyle = "gray";
+// You can use either `new PIXI.WebGLRenderer`, `new PIXI.CanvasRenderer`, or `PIXI.autoDetectRenderer`
+// which will try to choose the best renderer for the environment you are in.
+let renderer = new PIXI.WebGLRenderer(...[
+    GameConstants.GAME_WIDTH * tileSize,
+    GameConstants.GAME_HEIGHT * tileSize
+]);
 
-    // Draw Background
-    ctx.fillRect(...[
-        0,
-        0,
-        tileSize*GameConstants.GAME_WIDTH,
-        tileSize*GameConstants.GAME_HEIGHT
-    ]);
+// Debug
+window.renderer = renderer;
+
+// The renderer will create a canvas element for you that you can then insert into the DOM.
+document.body.appendChild(renderer.view);
+
+// create the root of the scene graph
+var stage = new PIXI.Container();
+var graphics = new PIXI.Graphics();
+stage.addChild(graphics);
+
+function animate() {
+
+    // set a fill
+    graphics.beginFill(0xCCCCCC);
+    graphics.drawRect(0, 0, 1000, 1000);
 
     // Draw Dot
     if(floorStore) {
         let floorState = floorStore.getState();
-        ctx.fillStyle = "purple";
-        ctx.fillRect(...[
+        graphics.beginFill(0xFF00FF);
+        graphics.drawRect(...[
             tileSize*floorState.get('dotX'),
             tileSize*floorState.get('dotY'),
             tileSize,
@@ -72,8 +76,8 @@ function render(delta) {
     if(playerStore) {
         let playerState = playerStore.getState();
 
-        ctx.fillStyle = "lightblue";
-        ctx.fillRect(...[
+        graphics.beginFill(0x0000FF);
+        graphics.drawRect(...[
             playerState.get('xPos')*tileSize,
             playerState.get('yPos')*tileSize,
             tileSize,
@@ -82,7 +86,7 @@ function render(delta) {
 
         let tail = playerState.get('tail');
         for(let i = 0; i < tail.size; i++) {
-            ctx.fillRect(...[
+        graphics.drawRect(...[
                 tail.getIn([i, 0])*tileSize,
                 tail.getIn([i, 1])*tileSize,
                 tileSize,
@@ -90,9 +94,12 @@ function render(delta) {
             ]);
         }
     }
+
+    renderer.render(stage);
+    //requestAnimationFrame( animate );
 }
 MainLoop.setSimulationFPS(60);
-MainLoop.setUpdate().setDraw(render).start();
+MainLoop.setUpdate().setDraw(animate).start();
 
 
 
