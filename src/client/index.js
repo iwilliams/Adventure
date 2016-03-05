@@ -1,6 +1,5 @@
 import patch                from 'immutablepatch';
 import * as MessageTypes    from '../shared/constants/MessageConstants';
-import MainLoop             from '../shared/mainloop';
 import StoreFactory         from '../shared/services/StoreFactory';
 import * as GameConstants   from '../shared/constants/GameConstants';
 import * as StoreConstants  from '../shared/constants/StoreConstants';
@@ -35,10 +34,11 @@ worker.onmessage = function(e) {
  * Append canvas to body
  */
 let tileSize = GameConstants.TILE_SIZE;
+//let tileSize = 1;
 
 // You can use either `new PIXI.WebGLRenderer`, `new PIXI.CanvasRenderer`, or `PIXI.autoDetectRenderer`
 // which will try to choose the best renderer for the environment you are in.
-let renderer = new PIXI.CanvasRenderer(...[
+let renderer = new PIXI.autoDetectRenderer(...[
     GameConstants.GAME_WIDTH * tileSize,
     GameConstants.GAME_HEIGHT * tileSize
 ]);
@@ -54,7 +54,10 @@ var stage = new PIXI.Container();
 var graphics = new PIXI.Graphics();
 stage.addChild(graphics);
 animate();
+
 function animate() {
+
+    requestAnimationFrame( animate );
 
     // set a fill
     graphics.beginFill(0xCCCCCC);
@@ -96,11 +99,7 @@ function animate() {
     }
 
     renderer.render(stage);
-    requestAnimationFrame( animate );
 }
-//MainLoop.setSimulationFPS(60);
-//MainLoop.setUpdate().setDraw(animate).start();
-
 
 
 
