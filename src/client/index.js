@@ -86,6 +86,43 @@ function animate() {
             tileSize
         ]);
 
+        graphics.beginFill(0x00FF00);
+        switch(playerState.get('dir')) {
+            case 's':
+                graphics.drawRect(...[
+                    (playerState.get('xPos')+1)*tileSize,
+                    playerState.get('yPos')*tileSize,
+                    tileSize,
+                    tileSize
+                ]);
+                break;
+            case 'n':
+                graphics.drawRect(...[
+                    (playerState.get('xPos')-1)*tileSize,
+                    playerState.get('yPos')*tileSize,
+                    tileSize,
+                    tileSize
+                ]);
+                break;
+            case 'e':
+                graphics.drawRect(...[
+                    playerState.get('xPos')*tileSize,
+                    (playerState.get('yPos')-1)*tileSize,
+                    tileSize,
+                    tileSize
+                ]);
+                break;
+            case 'w':
+                graphics.drawRect(...[
+                    playerState.get('xPos')*tileSize,
+                    (playerState.get('yPos')+1)*tileSize,
+                    tileSize,
+                    tileSize
+                ]);
+                break;
+        }
+
+        graphics.beginFill(0x0000FF);
         let tail = playerState.get('tail');
         for(let i = 0; i < tail.size; i++) {
         graphics.drawRect(...[
