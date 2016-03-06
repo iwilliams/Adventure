@@ -104,7 +104,7 @@ export default class PlayerStore extends BaseStore {
             'dir': 'e',
             'tailLength': 1,
             'tail': [[0, 0], [0, 0]],
-            'velocity': 20
+            'velocity': 15
         });
     }
 

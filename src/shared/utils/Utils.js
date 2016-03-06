@@ -1,4 +1,4 @@
-import shortid from 'shortid';
+//import shortid from 'shortid';
 
 let is_server;
 
@@ -10,6 +10,7 @@ if(self.document === undefined) {
 
 export const IS_SERVER = IS_SERVER
 
+let lastId = 0;
 export function randomId() {
-    return shortid.generate()
+    return lastId++;
 }

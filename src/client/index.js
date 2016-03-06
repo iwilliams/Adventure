@@ -43,7 +43,7 @@ function init() {
     scene = new THREE.Scene();
 
     camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 1, 10000 );
-    camera.position.z = 1000;
+    camera.position.z = 500;
 
     // Setup tiles
     for(let i = 0; i < GameConstants.GAME_WIDTH; i++) {
@@ -59,7 +59,7 @@ function init() {
 
             let mesh = new THREE.Mesh( geometry, material );
             mesh.position.setX((i*tileSize) - window.innerWidth/4);
-            mesh.position.setY((-j*tileSize) + window.innerHeight/4);
+            mesh.position.setZ((-j*tileSize) + window.innerHeight/4);
             scene.add( mesh );
 
             tiles[i].push(mesh);
@@ -79,6 +79,8 @@ function init() {
 }
 
 window.tiles = tiles;
+
+var dir;
 
 function animate() {
 
@@ -102,14 +104,17 @@ function animate() {
         tiles[dotX][dotY].material.wireframe = false;
     }
 
+    var x, y, size;
+
     let playerStores = StoreFactory.getByType(StoreConstants.PLAYER_STORE);
     // If there is a player store lets draw it
     if(playerStores) {
         playerStores.forEach(playerStore => {
             let playerState = playerStore.getState();
 
-            let x = playerState.get('xPos');
-            let y = playerState.get('yPos');
+            x = playerState.get('xPos');
+            y = playerState.get('yPos');
+            dir = playerState.get('dir');
 
             if(x < GameConstants.GAME_WIDTH &&
                     y < GameConstants.GAME_HEIGHT &&
@@ -121,6 +126,7 @@ function animate() {
 
             // Draw Tail
             let tail = playerState.get('tail');
+            size = tail.size;
             for(let i = 0; i < tail.size; i++) {
                 let tailX = tail.getIn([i, 0]);
                 let tailY = tail.getIn([i, 1]);
@@ -132,7 +138,44 @@ function animate() {
 
     //camera.position.x += ( mouseX - camera.position.x ) * 0.05;
     //camera.position.y += ( - mouseY - camera.position.y ) * 0.05;
-    camera.lookAt( scene.position );
+    if(x < GameConstants.GAME_WIDTH &&
+            y < GameConstants.GAME_HEIGHT &&
+            x > -1 &&
+            y > -1) {
+        camera.position.x = tiles[x][y].position.x;
+        camera.position.z = tiles[x][y].position.z;
+
+        let offset = 4*tileSize;
+
+        camera.position.y = tiles[x][y].position.y + 2*offset;
+
+        let cameraPos = new THREE.Vector3( 0, 0, 0 );
+        cameraPos.copy(tiles[x][y].position);
+
+        switch(dir) {
+            case 'n':
+                camera.position.z -= 5*offset;
+                cameraPos.copy(tiles[x][0].position);
+                break;
+            case 'e':
+                camera.position.x -= 5*offset;
+                cameraPos.copy(tiles[39][y].position);
+                break;
+            case 's':
+                camera.position.z += 5*offset;
+                cameraPos.copy(tiles[x][39].position);
+                break;
+            case 'w':
+                camera.position.x += 5*offset;
+                cameraPos.copy(tiles[0][y].position);
+                break;
+        }
+
+        cameraPos.y += 2*offset;
+
+
+        camera.lookAt(cameraPos);
+    }
 
     renderer.render( scene, camera );
 }
@@ -181,25 +224,63 @@ window.onkeydown = function(e) {
         case 65:
         case 72:
         case 37:
-            window.changeDir('w');
+            window.changeDir('l');
             break;
         case 83:
         case 74:
         case 40:
-            window.changeDir('s');
+            window.changeDir('d');
             break;
         case 87:
         case 75:
         case 38:
-            window.changeDir('n');
+            window.changeDir('u');
             break;
         case 68:
         case 76:
         case 39:
-            window.changeDir('e');
+            window.changeDir('r');
             break;
     }
 }
-window.changeDir = function(dir) {
-    worker.postMessage([MessageTypes.PLAYER_INPUT, dir]);
+window.changeDir = function(button) {
+    let toMove;
+
+    switch(button) {
+        case 'l':
+            switch(dir) {
+                case 'e':
+                    toMove = 's';
+                    break;
+                case 's':
+                    toMove = 'w';
+                    break;
+                case 'w':
+                    toMove = 'n';
+                    break;
+                case 'n':
+                    toMove = 'e';
+                    break;
+            }
+            break;
+        case 'r':
+            switch(dir) {
+                case 'e':
+                    toMove = 'n';
+                    break;
+                case 's':
+                    toMove = 'e';
+                    break;
+                case 'w':
+                    toMove = 's';
+                    break;
+                case 'n':
+                    toMove = 'w';
+                    break;
+            }
+            break;
+    }
+
+    dir = toMove;
+    worker.postMessage([MessageTypes.PLAYER_INPUT, toMove]);
 }
