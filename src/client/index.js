@@ -4,6 +4,7 @@ import StoreFactory         from '../shared/services/StoreFactory';
 import * as GameConstants   from '../shared/constants/GameConstants';
 import * as StoreConstants  from '../shared/constants/StoreConstants';
 import Immutable            from 'immutable';
+import THREE                from 'three';
 
 /**
  * Set up server
@@ -27,53 +28,53 @@ worker.onmessage = function(e) {
 }
 
 
+var scene, camera, renderer;
+var tiles = [];
 
-
-
-/**
- * Append canvas to body
- */
-let tileSize = GameConstants.TILE_SIZE;
-//let tileSize = 1;
-
-// You can use either `new PIXI.WebGLRenderer`, `new PIXI.CanvasRenderer`, or `PIXI.autoDetectRenderer`
-// which will try to choose the best renderer for the environment you are in.
-let renderer = new PIXI.autoDetectRenderer(...[
-    GameConstants.GAME_WIDTH * tileSize,
-    GameConstants.GAME_HEIGHT * tileSize
-]);
-
-// Debug
-window.renderer = renderer;
-
-// The renderer will create a canvas element for you that you can then insert into the DOM.
-document.body.appendChild(renderer.view);
-
-// create the root of the scene graph
-var stage = new PIXI.Container();
-var graphics = new PIXI.Graphics();
-stage.addChild(graphics);
+var tileSize = GameConstants.TILE_SIZE;
+init();
 animate();
 
-function animate() {
-    graphics.clear();
+function init() {
 
-    // set a fill
-    graphics.beginFill(0xCCCCCC);
-    graphics.drawRect(0, 0, 1000, 1000);
+    scene = new THREE.Scene();
 
-    let floorStore = StoreFactory.getByType(StoreConstants.FLOOR_STORE)[0];
-    // Draw Dot
-    if(floorStore) {
-        let floorState = floorStore.getState();
-        graphics.beginFill(0xFF00FF);
-        graphics.drawRect(...[
-            tileSize*floorState.get('dotX'),
-            tileSize*floorState.get('dotY'),
-            tileSize,
-            tileSize
-        ]);
+    camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 1, 10000 );
+    camera.position.z = 1000;
+
+    for(let i = 0; i < GameConstants.GAME_HEIGHT; i++) {
+        tiles[i] = [];
+        for(let j = 0; j < GameConstants.GAME_WIDTH; j++) {
+            tiles[i][j] = [];
+
+            let geometry = new THREE.BoxGeometry(tileSize, tileSize, tileSize);
+
+            let material = new THREE.MeshBasicMaterial({
+                color: 0xff0000,
+                wireframe: true
+            });
+
+            let mesh = new THREE.Mesh( geometry, material );
+            mesh.position.setX((i*tileSize) - window.innerWidth/4);
+            mesh.position.setY((j*tileSize) - window.innerHeight/4);
+            scene.add( mesh );
+
+            tiles[i][j].push(mesh);
+        }
     }
+
+    renderer = new THREE.WebGLRenderer();
+    renderer.setSize( window.innerWidth, window.innerHeight );
+
+    document.body.appendChild( renderer.domElement );
+
+}
+
+window.tiles = tiles;
+
+function animate() {
+
+    requestAnimationFrame( animate );
 
     let playerStores = StoreFactory.getByType(StoreConstants.PLAYER_STORE);
     // If there is a player store lets draw it
@@ -81,66 +82,131 @@ function animate() {
         playerStores.forEach(playerStore => {
             let playerState = playerStore.getState();
 
-            graphics.beginFill(0x0000FF);
-            graphics.drawRect(...[
-                playerState.get('xPos')*tileSize,
-                playerState.get('yPos')*tileSize,
-                tileSize,
-                tileSize
-            ]);
+            let x = playerState.get('xPos');
+            let y = playerState.get('yPos');
 
-            graphics.beginFill(0x00FF00);
-            switch(playerState.get('dir')) {
-                case 's':
-                    graphics.drawRect(...[
-                        (playerState.get('xPos')+1)*tileSize,
-                        playerState.get('yPos')*tileSize,
-                        tileSize,
-                        tileSize
-                    ]);
-                    break;
-                case 'n':
-                    graphics.drawRect(...[
-                        (playerState.get('xPos')-1)*tileSize,
-                        playerState.get('yPos')*tileSize,
-                        tileSize,
-                        tileSize
-                    ]);
-                    break;
-                case 'e':
-                    graphics.drawRect(...[
-                        playerState.get('xPos')*tileSize,
-                        (playerState.get('yPos')-1)*tileSize,
-                        tileSize,
-                        tileSize
-                    ]);
-                    break;
-                case 'w':
-                    graphics.drawRect(...[
-                        playerState.get('xPos')*tileSize,
-                        (playerState.get('yPos')+1)*tileSize,
-                        tileSize,
-                        tileSize
-                    ]);
-                    break;
-            }
-
-            graphics.beginFill(0x0000FF);
-            let tail = playerState.get('tail');
-            for(let i = 0; i < tail.size; i++) {
-            graphics.drawRect(...[
-                    tail.getIn([i, 0])*tileSize,
-                    tail.getIn([i, 1])*tileSize,
-                    tileSize,
-                    tileSize
-                ]);
-            }
+            tiles[y][x][0].material.color.setHex(0xff00ff);
         });
     }
 
-    renderer.render(stage);
-    requestAnimationFrame( animate );
+    //mesh.rotation.x += 0.01;
+    //mesh.rotation.y += 0.02;
+
+    renderer.render( scene, camera );
+
 }
+
+/**
+ * Append canvas to body
+ */
+//let tileSize = GameConstants.TILE_SIZE;
+//let tileSize = 1;
+
+// You can use either `new PIXI.WebGLRenderer`, `new PIXI.CanvasRenderer`, or `PIXI.autoDetectRenderer`
+// which will try to choose the best renderer for the environment you are in.
+//let renderer = new PIXI.autoDetectRenderer(...[
+    //GameConstants.GAME_WIDTH * tileSize,
+    //GameConstants.GAME_HEIGHT * tileSize
+//]);
+
+// Debug
+//window.renderer = renderer;
+
+// The renderer will create a canvas element for you that you can then insert into the DOM.
+//document.body.appendChild(renderer.view);
+
+// create the root of the scene graph
+//var stage = new PIXI.Container();
+//var graphics = new PIXI.Graphics();
+//stage.addChild(graphics);
+//animate();
+
+//function animate() {
+    //graphics.clear();
+
+    //// set a fill
+    //graphics.beginFill(0xCCCCCC);
+    //graphics.drawRect(0, 0, 1000, 1000);
+
+    //let floorStore = StoreFactory.getByType(StoreConstants.FLOOR_STORE)[0];
+    //// Draw Dot
+    //if(floorStore) {
+        //let floorState = floorStore.getState();
+        //graphics.beginFill(0xFF00FF);
+        //graphics.drawRect(...[
+            //tileSize*floorState.get('dotX'),
+            //tileSize*floorState.get('dotY'),
+            //tileSize,
+            //tileSize
+        //]);
+    //}
+
+    //let playerStores = StoreFactory.getByType(StoreConstants.PLAYER_STORE);
+    //// If there is a player store lets draw it
+    //if(playerStores) {
+        //playerStores.forEach(playerStore => {
+            //let playerState = playerStore.getState();
+
+            //graphics.beginFill(0x0000FF);
+            //graphics.drawRect(...[
+                //playerState.get('xPos')*tileSize,
+                //playerState.get('yPos')*tileSize,
+                //tileSize,
+                //tileSize
+            //]);
+
+            //graphics.beginFill(0x00FF00);
+            //switch(playerState.get('dir')) {
+                //case 's':
+                    //graphics.drawRect(...[
+                        //(playerState.get('xPos')+1)*tileSize,
+                        //playerState.get('yPos')*tileSize,
+                        //tileSize,
+                        //tileSize
+                    //]);
+                    //break;
+                //case 'n':
+                    //graphics.drawRect(...[
+                        //(playerState.get('xPos')-1)*tileSize,
+                        //playerState.get('yPos')*tileSize,
+                        //tileSize,
+                        //tileSize
+                    //]);
+                    //break;
+                //case 'e':
+                    //graphics.drawRect(...[
+                        //playerState.get('xPos')*tileSize,
+                        //(playerState.get('yPos')-1)*tileSize,
+                        //tileSize,
+                        //tileSize
+                    //]);
+                    //break;
+                //case 'w':
+                    //graphics.drawRect(...[
+                        //playerState.get('xPos')*tileSize,
+                        //(playerState.get('yPos')+1)*tileSize,
+                        //tileSize,
+                        //tileSize
+                    //]);
+                    //break;
+            //}
+
+            //graphics.beginFill(0x0000FF);
+            //let tail = playerState.get('tail');
+            //for(let i = 0; i < tail.size; i++) {
+            //graphics.drawRect(...[
+                    //tail.getIn([i, 0])*tileSize,
+                    //tail.getIn([i, 1])*tileSize,
+                    //tileSize,
+                    //tileSize
+                //]);
+            //}
+        //});
+    //}
+
+    //renderer.render(stage);
+    //requestAnimationFrame( animate );
+//}
 
 
 

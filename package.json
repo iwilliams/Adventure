@@ -22,6 +22,7 @@
     "immutablepatch": "^0.2.2",
     "mainloop.js": "^1.0.1",
     "shortid": "https://github.com/iwilliams/shortid.git",
+    "three": "^0.74.0",
     "vinyl-buffer": "^1.0.0",
     "vinyl-source-stream": "^1.1.0"
   }
