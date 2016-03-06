@@ -281,6 +281,16 @@ window.changeDir = function(button) {
             break;
     }
 
-    dir = toMove;
-    worker.postMessage([MessageTypes.PLAYER_INPUT, toMove]);
+    if(toMove) {
+        dir = toMove;
+        worker.postMessage([MessageTypes.PLAYER_INPUT, toMove]);
+    }
+}
+
+document.getElementById('left').onclick = function() {
+    window.changeDir('l');
+}
+
+document.getElementById('right').onclick = function() {
+    window.changeDir('r');
 }
