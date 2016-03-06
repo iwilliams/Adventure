@@ -62,6 +62,25 @@ class StoreFactory {
     lookup(storeID) {
         return this.stores.get(storeID);
     }
+
+    /**
+     * getByType
+     *
+     * Get stores by type
+     */
+    getByType(type) {
+        let stores = this.stores.values();
+        let storesToReturn = [];
+
+        let store = stores.next();
+        while(!store.done) {
+            if(store.value.type === type)
+                storesToReturn.push(store.value);
+            store = stores.next();
+        }
+
+        return storesToReturn;
+    }
 }
 
 export default new StoreFactory();

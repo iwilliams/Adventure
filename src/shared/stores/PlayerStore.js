@@ -1,6 +1,7 @@
-import BaseStore        from './BaseStore';
-import Immutable        from 'immutable';
-import gameDispatcher   from '../dispatcher/GameDispatcher';
+import BaseStore            from './BaseStore';
+import Immutable            from 'immutable';
+import gameDispatcher       from '../dispatcher/GameDispatcher';
+import * as StoreConstants  from '../constants/StoreConstants';
 
 let shouldGrow = false;
 
@@ -90,6 +91,12 @@ function changeDir(state, dir) {
 }
 
 export default class PlayerStore extends BaseStore {
+
+    constructor() {
+        super(...arguments);
+        this.type = StoreConstants.PLAYER_STORE;
+    }
+
     getInitialState() {
         return Immutable.fromJS({
             'xPos': 0,

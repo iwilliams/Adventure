@@ -62,6 +62,7 @@ function animate() {
     graphics.beginFill(0xCCCCCC);
     graphics.drawRect(0, 0, 1000, 1000);
 
+    let floorStore = StoreFactory.getByType(StoreConstants.FLOOR_STORE)[0];
     // Draw Dot
     if(floorStore) {
         let floorState = floorStore.getState();
@@ -74,64 +75,67 @@ function animate() {
         ]);
     }
 
+    let playerStores = StoreFactory.getByType(StoreConstants.PLAYER_STORE);
     // If there is a player store lets draw it
-    if(playerStore) {
-        let playerState = playerStore.getState();
+    if(playerStores) {
+        playerStores.forEach(playerStore => {
+            let playerState = playerStore.getState();
 
-        graphics.beginFill(0x0000FF);
-        graphics.drawRect(...[
-            playerState.get('xPos')*tileSize,
-            playerState.get('yPos')*tileSize,
-            tileSize,
-            tileSize
-        ]);
-
-        graphics.beginFill(0x00FF00);
-        switch(playerState.get('dir')) {
-            case 's':
-                graphics.drawRect(...[
-                    (playerState.get('xPos')+1)*tileSize,
-                    playerState.get('yPos')*tileSize,
-                    tileSize,
-                    tileSize
-                ]);
-                break;
-            case 'n':
-                graphics.drawRect(...[
-                    (playerState.get('xPos')-1)*tileSize,
-                    playerState.get('yPos')*tileSize,
-                    tileSize,
-                    tileSize
-                ]);
-                break;
-            case 'e':
-                graphics.drawRect(...[
-                    playerState.get('xPos')*tileSize,
-                    (playerState.get('yPos')-1)*tileSize,
-                    tileSize,
-                    tileSize
-                ]);
-                break;
-            case 'w':
-                graphics.drawRect(...[
-                    playerState.get('xPos')*tileSize,
-                    (playerState.get('yPos')+1)*tileSize,
-                    tileSize,
-                    tileSize
-                ]);
-                break;
-        }
-
-        graphics.beginFill(0x0000FF);
-        let tail = playerState.get('tail');
-        for(let i = 0; i < tail.size; i++) {
-        graphics.drawRect(...[
-                tail.getIn([i, 0])*tileSize,
-                tail.getIn([i, 1])*tileSize,
+            graphics.beginFill(0x0000FF);
+            graphics.drawRect(...[
+                playerState.get('xPos')*tileSize,
+                playerState.get('yPos')*tileSize,
                 tileSize,
                 tileSize
             ]);
-        }
+
+            graphics.beginFill(0x00FF00);
+            switch(playerState.get('dir')) {
+                case 's':
+                    graphics.drawRect(...[
+                        (playerState.get('xPos')+1)*tileSize,
+                        playerState.get('yPos')*tileSize,
+                        tileSize,
+                        tileSize
+                    ]);
+                    break;
+                case 'n':
+                    graphics.drawRect(...[
+                        (playerState.get('xPos')-1)*tileSize,
+                        playerState.get('yPos')*tileSize,
+                        tileSize,
+                        tileSize
+                    ]);
+                    break;
+                case 'e':
+                    graphics.drawRect(...[
+                        playerState.get('xPos')*tileSize,
+                        (playerState.get('yPos')-1)*tileSize,
+                        tileSize,
+                        tileSize
+                    ]);
+                    break;
+                case 'w':
+                    graphics.drawRect(...[
+                        playerState.get('xPos')*tileSize,
+                        (playerState.get('yPos')+1)*tileSize,
+                        tileSize,
+                        tileSize
+                    ]);
+                    break;
+            }
+
+            graphics.beginFill(0x0000FF);
+            let tail = playerState.get('tail');
+            for(let i = 0; i < tail.size; i++) {
+            graphics.drawRect(...[
+                    tail.getIn([i, 0])*tileSize,
+                    tail.getIn([i, 1])*tileSize,
+                    tileSize,
+                    tileSize
+                ]);
+            }
+        });
     }
 
     renderer.render(stage);
@@ -147,6 +151,7 @@ function animate() {
 let gameStore;
 let playerStore;
 let floorStore;
+window.StoreFactory = StoreFactory;
 
 function createStore(payload) {
     let storeType   = payload[0];
@@ -154,20 +159,6 @@ function createStore(payload) {
     let state       = Immutable.fromJS(JSON.parse(payload[2]));
 
     let newStore = StoreFactory.create(storeType, storeId, state);
-
-    // Set the store class based on type
-    switch(storeType) {
-        case StoreConstants.GAME_STORE:
-            gameStore = newStore;
-            break;
-        case StoreConstants.PLAYER_STORE:
-            playerStore = newStore;
-            window.playerStore = playerStore;
-            break;
-        case StoreConstants.FLOOR_STORE:
-            floorStore = newStore;
-            break;
-    }
 }
 
 

@@ -3,12 +3,14 @@ import BaseStore            from './BaseStore';
 import * as rng             from '../utils/Rng';
 import Immutable            from 'immutable';
 import * as GameConstants   from '../constants/GameConstants';
+import * as StoreConstants  from '../constants/StoreConstants';
 
 export default class FloorStore extends BaseStore {
 
-    //getInitialState() {
-        //return Immutable.List.of(...generateFloor());
-    //}
+    constructor() {
+        super(...arguments);
+        this.type = StoreConstants.FLOOR_STORE;
+    }
 
     getInitialState() {
         return Immutable.Map({
