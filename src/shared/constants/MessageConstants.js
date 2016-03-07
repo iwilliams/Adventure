@@ -1,6 +1,11 @@
 let constIterator = 0;
 
 /**
+ * System messages
+ */
+export const INITIALIZE         = constIterator++;
+
+/**
  * Client messages
  */
 export const CLIENT_CONNECT     = constIterator++;

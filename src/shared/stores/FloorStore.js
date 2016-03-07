@@ -14,10 +14,8 @@ export default class FloorStore extends BaseStore {
 
     getInitialState() {
         return Immutable.Map({
-            width: GameConstants.GAME_WIDTH,
-            height: GameConstants.GAME_HEIGHT,
-            dotX: rng.randomRange(1, GameConstants.GAME_WIDTH),
-            dotY: rng.randomRange(1, GameConstants.GAME_HEIGHT)
+            rooms: rng.randomRange(1, 10),
+            currentRoom: 0
         });
     }
 
@@ -25,15 +23,12 @@ export default class FloorStore extends BaseStore {
      * Will be called on dispatch
      */
     reduce(state, payload) {
-        let {action} = payload;
+        let {action, data} = payload;
 
         switch(action) {
-            case 'eat':
-                state = state.set('dotX', rng.randomRange(0, GameConstants.GAME_WIDTH));
-                state = state.set('dotY', rng.randomRange(0, GameConstants.GAME_HEIGHT));
+            case 'move':
+                state = state.updateIn(['currentRoom'], value => value += data);
                 break;
-            case 'restart':
-                state = this.getInitialState();
         }
 
         return state;
