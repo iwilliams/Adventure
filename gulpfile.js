@@ -15,7 +15,8 @@ var bowerDir = function(dir) {
 };
 
 var includes = {
-    pixi: bowerDir('pixi.js/bin/')
+    pixi: bowerDir('pixi.js/bin/'),
+    three: './node_modules/three/'
 };
 
 // Run webserver
@@ -60,7 +61,8 @@ defaultTasks.push('simulation-worker');
 // Vendor Scripts
 gulp.task('vendor-scripts', function() {
     return gulp.src([
-        includes.pixi  + 'pixi.min.js'
+        //includes.pixi  + 'pixi.min.js',
+        //includes.three  + 'examples/js/controls/TrackballControls.js',
     ])
     .pipe(concat('vendor.js'))
     .pipe(uglify())

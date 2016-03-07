@@ -4,7 +4,10 @@ import StoreFactory         from '../shared/services/StoreFactory';
 import * as GameConstants   from '../shared/constants/GameConstants';
 import * as StoreConstants  from '../shared/constants/StoreConstants';
 import Immutable            from 'immutable';
-import THREE                from 'three';
+//import THREE                from 'three';
+import THREE    from './TrackballControls.js';
+
+window.THREE = THREE;
 
 /**
  * Set up server
@@ -31,156 +34,123 @@ worker.onmessage = function(e) {
 var scene, camera, renderer, mouseX, mouseY;
 var tiles = [];
 
-var windowHalfX = window.innerWidth / 2;
-var windowHalfY = window.innerHeight / 2;
-
 var tileSize = GameConstants.TILE_SIZE;
-init();
-animate();
 
+var controls;
 function init() {
 
     scene = new THREE.Scene();
 
     camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 1, 10000 );
     camera.position.z = 500;
+    camera.position.y = 100;
+    camera.position.x = 0;
 
-    // Setup tiles
-    for(let i = 0; i < GameConstants.GAME_WIDTH; i++) {
-        tiles[i] = [];
-        for(let j = 0; j < GameConstants.GAME_HEIGHT; j++) {
+    controls = new THREE.TrackballControls( camera );
 
-            let geometry = new THREE.BoxGeometry(tileSize, tileSize, tileSize);
+    controls.rotateSpeed = 1.0;
+    controls.zoomSpeed = 1.2;
+    controls.panSpeed = 0.8;
 
-            let material = new THREE.MeshBasicMaterial({
-                color: 0xcccccc,
-                wireframe: true
-            });
+    controls.noZoom = false;
+    controls.noPan = false;
 
-            let mesh = new THREE.Mesh( geometry, material );
-            mesh.position.setX((i*tileSize) - window.innerWidth/4);
-            mesh.position.setZ((-j*tileSize) + window.innerHeight/4);
-            scene.add( mesh );
+    controls.staticMoving = true;
+    controls.dynamicDampingFactor = 0.3;
 
-            tiles[i].push(mesh);
+    controls.keys = [ 65, 83, 68 ];
+
+    //controls.addEventListener( 'change', render );
+
+    let roomSize = 10;
+    for(let y = 0; y < roomSize; y++) {
+        for(let x = 0; x < roomSize; x++) {
+            for(let z = 0; z < roomSize; z++) {
+                if(y < 1) {
+                    // Draw Floor
+                    let box = new THREE.BoxGeometry(tileSize, tileSize, tileSize);
+                    let material = new THREE.MeshBasicMaterial({
+                        color: 0x333333
+                    });
+                    let mesh = new THREE.Mesh(box, material);
+                    mesh.position.setY(y*tileSize);
+                    mesh.position.setX((roomSize*tileSize/2) - (x*tileSize));
+                    mesh.position.setZ(z*tileSize);
+                    scene.add(mesh);
+                } else if (y === roomSize-1) {
+                    // Draw Cieling
+                    let box = new THREE.BoxGeometry(tileSize, tileSize, tileSize);
+                    let material = new THREE.MeshBasicMaterial({
+                        color: 0x330033
+                    });
+                    let mesh = new THREE.Mesh(box, material);
+                    mesh.position.setY(y*tileSize);
+                    mesh.position.setX((roomSize*tileSize/2) - (x*tileSize));
+                    mesh.position.setZ(z*tileSize);
+                    scene.add(mesh);
+                } else if (x === 0 && (y > 3 || z !== roomSize/2-1 && z !== roomSize/2)) {
+                    // Draw right wall
+                    let box = new THREE.BoxGeometry(tileSize, tileSize, tileSize);
+                    let material = new THREE.MeshBasicMaterial({
+                        color: 0x3300000
+                    });
+                    let mesh = new THREE.Mesh(box, material);
+                    mesh.position.setY(y*tileSize);
+                    mesh.position.setX((roomSize*tileSize/2) - (x*tileSize));
+                    mesh.position.setZ(z*tileSize);
+                    scene.add(mesh);
+                } else if (z === 0 && (y > 3 || x !== roomSize/2-1 && x !== roomSize/2)) {
+                    // Draw back wall
+                    let box = new THREE.BoxGeometry(tileSize, tileSize, tileSize);
+                    let material = new THREE.MeshBasicMaterial({
+                        color: 0x003300
+                    });
+                    let mesh = new THREE.Mesh(box, material);
+                    mesh.position.setY(y*tileSize);
+                    mesh.position.setX((roomSize*tileSize/2) - (x*tileSize));
+                    mesh.position.setZ(z*tileSize);
+                    scene.add(mesh);
+                } else if (x === roomSize-1 && (y > 3 || z !== roomSize/2-1 && z !== roomSize/2)) {
+                    // Draw left wall
+                    let box = new THREE.BoxGeometry(tileSize, tileSize, tileSize);
+                    let material = new THREE.MeshBasicMaterial({
+                        color: 0x333300
+                    });
+                    let mesh = new THREE.Mesh(box, material);
+                    mesh.position.setY(y*tileSize);
+                    mesh.position.setX((roomSize*tileSize/2) - (x*tileSize));
+                    mesh.position.setZ(z*tileSize);
+                    scene.add(mesh);
+                }
+            }
         }
     }
 
     renderer = new THREE.WebGLRenderer();
     renderer.setSize( window.innerWidth, window.innerHeight );
 
-    document.addEventListener( 'mousemove', (event) => {
-        mouseX = ( event.clientX - windowHalfX );
-        mouseY = ( event.clientY - windowHalfY );
-    }, false );
+    window.onresize = e => {
+        camera.aspect = window.innerWidth / window.innerHeight;
+        camera.updateProjectionMatrix();
+
+        renderer.setSize( window.innerWidth, window.innerHeight );
+
+        controls.handleResize();
+    }
 
     document.body.appendChild( renderer.domElement );
-
 }
 
 window.tiles = tiles;
 
-var dir;
-
 function animate() {
-
+    controls.update()
     requestAnimationFrame( animate );
-
-    // Reset Tile colors
-    tiles.forEach(row => {
-        row.forEach(tile => {
-            tile.material.color.setHex(0xcccccc);
-            tile.material.wireframe = true;
-        });
-    })
-
-    let floorStore = StoreFactory.getByType(StoreConstants.FLOOR_STORE)[0];
-    // Draw Dot
-    if(floorStore) {
-        let floorState = floorStore.getState();
-        let dotX = floorState.get('dotX');
-        let dotY = floorState.get('dotY');
-        tiles[dotX][dotY].material.color.setHex(0xff00ff);
-        tiles[dotX][dotY].material.wireframe = false;
-    }
-
-    var x, y, size;
-
-    let playerStores = StoreFactory.getByType(StoreConstants.PLAYER_STORE);
-    // If there is a player store lets draw it
-    if(playerStores) {
-        playerStores.forEach(playerStore => {
-            let playerState = playerStore.getState();
-
-            x = playerState.get('xPos');
-            y = playerState.get('yPos');
-            dir = playerState.get('dir');
-
-            if(x < GameConstants.GAME_WIDTH &&
-                    y < GameConstants.GAME_HEIGHT &&
-                    x > -1 &&
-                    y > -1) {
-                tiles[x][y].material.color.setHex(0x0000ff);
-                tiles[x][y].material.wireframe = false;
-            }
-
-            // Draw Tail
-            let tail = playerState.get('tail');
-            size = tail.size;
-            for(let i = 0; i < tail.size; i++) {
-                let tailX = tail.getIn([i, 0]);
-                let tailY = tail.getIn([i, 1]);
-                tiles[tailX][tailY].material.color.setHex(0x0000ff);
-                tiles[tailX][tailY].material.wireframe = false;
-            }
-        });
-    }
-
-    //camera.position.x += ( mouseX - camera.position.x ) * 0.05;
-    //camera.position.y += ( - mouseY - camera.position.y ) * 0.05;
-    if(x < GameConstants.GAME_WIDTH &&
-            y < GameConstants.GAME_HEIGHT &&
-            x > -1 &&
-            y > -1) {
-        camera.position.x = tiles[x][y].position.x;
-        camera.position.z = tiles[x][y].position.z;
-
-        let offset = 4*tileSize;
-
-        camera.position.y = tiles[x][y].position.y + 2*offset;
-
-        let cameraPos = new THREE.Vector3( 0, 0, 0 );
-        cameraPos.copy(tiles[x][y].position);
-
-        switch(dir) {
-            case 'n':
-                camera.position.z -= 5*offset;
-                cameraPos.copy(tiles[x][0].position);
-                break;
-            case 'e':
-                camera.position.x -= 5*offset;
-                cameraPos.copy(tiles[39][y].position);
-                break;
-            case 's':
-                camera.position.z += 5*offset;
-                cameraPos.copy(tiles[x][39].position);
-                break;
-            case 'w':
-                camera.position.x += 5*offset;
-                cameraPos.copy(tiles[0][y].position);
-                break;
-        }
-
-        cameraPos.y += 2*offset;
-
-
-        camera.lookAt(cameraPos);
-    }
-
     renderer.render( scene, camera );
 }
 
-
+init();
+animate();
 
 /**
  * Create Stores
@@ -219,78 +189,70 @@ function patchStore(payload) {
 /**
  * Change player dir
  */
-window.onkeydown = function(e) {
-    switch(e.keyCode) {
-        case 65:
-        case 72:
-        case 37:
-            window.changeDir('l');
-            break;
-        case 83:
-        case 74:
-        case 40:
-            window.changeDir('d');
-            break;
-        case 87:
-        case 75:
-        case 38:
-            window.changeDir('u');
-            break;
-        case 68:
-        case 76:
-        case 39:
-            window.changeDir('r');
-            break;
-    }
-}
-window.changeDir = function(button) {
-    let toMove;
+//window.onkeydown = function(e) {
+    //switch(e.keyCode) {
+        //case 65:
+        //case 72:
+        //case 37:
+            //window.changeDir('l');
+            //break;
+        //case 83:
+        //case 74:
+        //case 40:
+            //window.changeDir('d');
+            //break;
+        //case 87:
+        //case 75:
+        //case 38:
+            //window.changeDir('u');
+            //break;
+        //case 68:
+        //case 76:
+        //case 39:
+            //window.changeDir('r');
+            //break;
+    //}
+//}
+//window.changeDir = function(button) {
+    //let toMove;
 
-    switch(button) {
-        case 'l':
-            switch(dir) {
-                case 'e':
-                    toMove = 's';
-                    break;
-                case 's':
-                    toMove = 'w';
-                    break;
-                case 'w':
-                    toMove = 'n';
-                    break;
-                case 'n':
-                    toMove = 'e';
-                    break;
-            }
-            break;
-        case 'r':
-            switch(dir) {
-                case 'e':
-                    toMove = 'n';
-                    break;
-                case 's':
-                    toMove = 'e';
-                    break;
-                case 'w':
-                    toMove = 's';
-                    break;
-                case 'n':
-                    toMove = 'w';
-                    break;
-            }
-            break;
-    }
+    //switch(button) {
+        //case 'l':
+            //switch(dir) {
+                //case 'e':
+                    //toMove = 's';
+                    //break;
+                //case 's':
+                    //toMove = 'w';
+                    //break;
+                //case 'w':
+                    //toMove = 'n';
+                    //break;
+                //case 'n':
+                    //toMove = 'e';
+                    //break;
+            //}
+            //break;
+        //case 'r':
+            //switch(dir) {
+                //case 'e':
+                    //toMove = 'n';
+                    //break;
+                //case 's':
+                    //toMove = 'e';
+                    //break;
+                //case 'w':
+                    //toMove = 's';
+                    //break;
+                //case 'n':
+                    //toMove = 'w';
+                    //break;
+            //}
+            //break;
+    //}
 
-    if(toMove) {
-        dir = toMove;
-        worker.postMessage([MessageTypes.PLAYER_INPUT, toMove]);
-    }
-}
-
-document.getElementById('left').onclick = function() {
-    window.changeDir('l');
-}
-
-document.getElementById('right').onclick = function() {
-    window.changeDir('r');
-}
+    //if(toMove) {
+        //dir = toMove;
+        //worker.postMessage([MessageTypes.PLAYER_INPUT, toMove]);
+    //}
+//}
