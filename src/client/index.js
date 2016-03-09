@@ -4,8 +4,7 @@ import StoreFactory         from '../shared/services/StoreFactory';
 import * as GameConstants   from '../shared/constants/GameConstants';
 import * as StoreConstants  from '../shared/constants/StoreConstants';
 import Immutable            from 'immutable';
-//import THREE                from 'three';
-import THREE    from './TrackballControls.js';
+import THREE                from 'three';
 
 /**
  * Set up server
@@ -33,17 +32,18 @@ worker.onmessage = function(e) {
 
 
 var scene, camera, renderer, mouseX, mouseY;
-window.camera = camera;
+
 var tiles = [];
+window.tiles = tiles;
 
 var tileSize = GameConstants.TILE_SIZE;
-var roomSize = 10;
 
 var controls;
 function init() {
 
     scene = new THREE.Scene();
 
+    scene.fog = new THREE.FogExp2(0x002211, 0.0020);
 
     camera = new THREE.PerspectiveCamera(...[
             75,
@@ -51,77 +51,64 @@ function init() {
             1,
             10000
     ]);
+    window.camera = camera;
 
     camera.position.z = 500;
-    camera.position.y = 100;
+    camera.position.y = 2*tileSize;
     camera.position.x = 0;
-
-    controls = new THREE.TrackballControls( camera );
-
-    controls.rotateSpeed = 1.0;
-    controls.zoomSpeed = 1.2;
-    controls.panSpeed = 0.8;
-
-    controls.noZoom = false;
-    controls.noPan = false;
-
-    controls.staticMoving = true;
-    controls.dynamicDampingFactor = 0.3;
-
-    controls.keys = [ 65, 83, 68 ];
-
-
-    // Center room
-    function drawRoom(xOffset = 0, yOffset = 0, zOffset = 0) {
-        for(let y = 0; y < roomSize; y++) {
-            for(let x = 0; x < roomSize; x++) {
-                for(let z = 0; z < roomSize; z++) {
-                    let shouldAddMesh = true;
-                    let color;
-
-                    if(y < 1) {
-                        // Draw Floor
-                        color = 0x333333;
-                    } else if (y === roomSize-1) {
-                        // Draw Cieling
-                        color = 0x330033;
-                    } else if (x === 0 && (y > 3 || z !== roomSize/2-1 && z !== roomSize/2)) {
-                        // Draw right wall
-                        color = 0x330000;
-                    } else if (z === 0 && (y > 3 || x !== roomSize/2-1 && x !== roomSize/2)) {
-                        // Draw back wall
-                        color = 0x003300;
-                    } else if (x === roomSize-1 && (y > 3 || z !== roomSize/2-1 && z !== roomSize/2)) {
-                        // Draw left wall
-                        color = 0x333300;
-                    } else {
-                        shouldAddMesh = false;
-                    }
-
-                    if(shouldAddMesh) {
-                        let box = new THREE.BoxGeometry(tileSize, tileSize, tileSize);
-                        let material = new THREE.MeshBasicMaterial({
-                            color: color
-                        });
-                        let mesh = new THREE.Mesh(box, material);
-                        mesh.position.setY(y*tileSize + yOffset);
-                        mesh.position.setX(
-                                (x*tileSize)+xOffset
-                        );
-                        mesh.position.setZ(z*tileSize + zOffset);
-                        scene.add(mesh);
-                    }
-                }
-            }
-        }
-    }
 
     let floorStore   = StoreFactory.getByType(StoreConstants.FLOOR_STORE)[0];
     let floorState   = floorStore.getState();
-    let rooms        = floorState.get('rooms');
+    let layout       = floorState.get('layout').toJS();
 
-    for(let i = 0; i < rooms; i++) {
-        drawRoom(i*roomSize*tileSize);
+    var textureLoader = new THREE.TextureLoader();
+
+    var texture1 = textureLoader.load("assets/floor_texture.png");
+    var texture2 = textureLoader.load("assets/wall_texture.png");
+
+    texture1.wrapS = texture1.wrapT = THREE.RepeatWrapping;
+    texture1.repeat.set(5,5);
+
+    texture2.wrapS = texture2.wrapT = THREE.RepeatWrapping;
+    texture2.repeat.set(5,20);
+
+    // LIGHTS
+    let hemiLight = new THREE.HemisphereLight( 0xffffff, 0xffffff, 0.6 );
+    hemiLight.color.setHSL( 0.6, 1, 0.6 );
+    hemiLight.groundColor.setHSL( 0.095, 1, 0.75 );
+    hemiLight.position.set( 0, 500, 0 );
+    scene.add( hemiLight );
+
+    // Draw floor layout
+    for(let z = 0; z < layout.length; z++) {
+        tiles[z] = []
+        for(let x = 0; x < layout.length; x++) {
+            switch(layout[z][x]) {
+                case 1:
+                    var box = new THREE.BoxGeometry(tileSize, tileSize, tileSize);
+                    var material = new THREE.MeshBasicMaterial({
+                        color: 0xffffff,
+                        map: texture1
+                    });
+                    break;
+                case 2:
+                    var box = new THREE.BoxGeometry(tileSize, 4*tileSize, tileSize);
+                    var material = new THREE.MeshBasicMaterial({
+                        color: 0xffffff,
+                        map: texture2
+                    });
+                    break;
+            }
+
+            let mesh = new THREE.Mesh(box, material);
+            mesh.position.setY(0);
+            mesh.position.setX(x*tileSize);
+            mesh.position.setZ(z*tileSize);
+            tiles[z].push(mesh);
+            scene.add(mesh);
+
+            mesh.receiveShadow = true;
+        }
     }
 
     renderer = new THREE.WebGLRenderer();
@@ -138,28 +125,66 @@ function init() {
 
     document.body.appendChild( renderer.domElement );
 
-    animate();
-}
+    let playerStore  = StoreFactory.getByType(StoreConstants.PLAYER_STORE)[0];
+    let playerState  = playerStore.getState();
+    let x            = playerState.get('x');
+    let y            = playerState.get('y');
 
-function animate() {
-    controls.update();
-    requestAnimationFrame( animate );
-
-    let floorStore   = StoreFactory.getByType(StoreConstants.FLOOR_STORE)[0];
-    let floorState   = floorStore.getState();
-    let currentRoom  = floorState.get('currentRoom');
-
-    camera.position.x = (roomSize*tileSize/2)+(roomSize*tileSize*currentRoom);
+    camera.position.x = tiles[y][x].position.x;
+    camera.position.z = tiles[y][x].position.z;
+    camera.position.y = tileSize;
 
     let v = new THREE.Vector3(...[
-        camera.position.x,
-        0,
-        0
+        camera.position.x + tileSize,
+        camera.position.y,
+        camera.position.z
     ]);
 
     camera.lookAt(v);
 
+    animate();
+}
+
+function animate() {
+    requestAnimationFrame( animate );
+
+    let floorStore   = StoreFactory.getByType(StoreConstants.FLOOR_STORE)[0];
+    let floorState   = floorStore.getState();
+
+    let playerStore  = StoreFactory.getByType(StoreConstants.PLAYER_STORE)[0];
+    let playerState  = playerStore.getState();
+    let x            = playerState.get('x');
+    let y            = playerState.get('y');
+
+    //camera.position.x = tiles[y][x].position.x;
+    //camera.position.z = tiles[y][x].position.z;
+    //camera.position.y = 100;
+
+    // Get rid of camera twist
+    //camera.rotation.set(camera.rotation.x, 0, camera.rotation.z, camera.rotation.order);
+
+    //let v = new THREE.Vector3(...[
+        //camera.position.x + tileSize,
+        //camera.position.y,
+        //camera.position.z
+    //]);
+
+    //camera.lookAt(v);
+
     renderer.render( scene, camera );
+}
+
+var lastX, lastY;
+window.onmousemove = function(e) {
+    if(lastX && lastY) {
+        let dX = (lastX - e.clientX)*.05;
+        let dY = (lastY - e.clientY)*.05;
+
+        let rotation = window.camera.rotation;
+        window.camera.rotation.set(rotation.x + dY, rotation.y + dX, rotation.z, 'YXZ');
+    }
+    lastX = e.clientX;
+    lastY = e.clientY;
 }
 
 /**

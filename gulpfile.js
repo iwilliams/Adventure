@@ -85,13 +85,13 @@ gulp.task('watch-scripts', function() {
 defaultTasks.push('watch-scripts');
 
 gulp.task('move-resources', function() {
-    gulp.src('./src/resources/*/**')
-        .pipe(gulp.dest('./dist/resources'));
+    gulp.src('./src/assets/**/*')
+        .pipe(gulp.dest('./dist/assets'));
 });
 defaultTasks.push('move-resources');
 
 gulp.task('watch-resources', function() {
-    gulp.watch(['./src/resources/*/**'], ['move-resources']);
+    gulp.watch(['./src/assets/**/*'], ['move-resources']);
 });
 defaultTasks.push('watch-resources');
 

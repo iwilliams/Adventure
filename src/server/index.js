@@ -6,11 +6,11 @@ import * as GameConstants       from '../shared/constants/GameConstants';
 import * as Stores              from '../shared/constants/StoreConstants';
 import * as MessageConstants    from '../shared/constants/MessageConstants';
 
-//let playerStore = StoreFactory.create(Stores.PLAYER_STORE);
+let playerStore = StoreFactory.create(Stores.PLAYER_STORE);
 let floorStore  = StoreFactory.create(Stores.FLOOR_STORE);
 
 postMessage([
-        MessageConstants.INITIALIZE
+    MessageConstants.INITIALIZE
 ]);
 
 function tick(frame) {
