@@ -72,13 +72,6 @@ function init() {
     texture2.wrapS = texture2.wrapT = THREE.RepeatWrapping;
     texture2.repeat.set(5,20);
 
-    // LIGHTS
-    let hemiLight = new THREE.HemisphereLight( 0xffffff, 0xffffff, 0.6 );
-    hemiLight.color.setHSL( 0.6, 1, 0.6 );
-    hemiLight.groundColor.setHSL( 0.095, 1, 0.75 );
-    hemiLight.position.set( 0, 500, 0 );
-    scene.add( hemiLight );
-
     // Draw floor layout
     for(let z = 0; z < layout.length; z++) {
         tiles[z] = []
@@ -90,6 +83,11 @@ function init() {
                         color: 0xffffff,
                         map: texture1
                     });
+            let mesh = new THREE.Mesh(box, material);
+            mesh.position.setY(2*tileSize);
+            mesh.position.setX(x*tileSize);
+            mesh.position.setZ(z*tileSize);
+            scene.add(mesh);
                     break;
                 case 2:
                     var box = new THREE.BoxGeometry(tileSize, 4*tileSize, tileSize);
@@ -225,11 +223,13 @@ function patchStore(payload) {
 window.onkeydown = function(e) {
     switch(e.keyCode) {
         // Left
-        //case 65:
-        //case 72:
-        //case 37:
+        case 65:
+        case 72:
+        case 37:
+            var rotation = window.camera.rotation;
+            window.camera.rotation.set(0, rotation.y + Math.PI/2, 0, 'XYZ');
             //worker.postMessage([MessageTypes.PLAYER_INPUT, -1]);
-            //break;
+            break;
         case 83:
         case 74:
         case 40:
@@ -241,10 +241,12 @@ window.onkeydown = function(e) {
             worker.postMessage([MessageTypes.PLAYER_INPUT, 1]);
             break;
         // Right
-        //case 68:
-        //case 76:
-        //case 39:
+        case 68:
+        case 76:
+        case 39:
+            var rotation = window.camera.rotation;
+            window.camera.rotation.set(0, rotation.y - Math.PI/2, 0, 'XYZ');
             //worker.postMessage([MessageTypes.PLAYER_INPUT, 1]);
-            //break;
+            break;
     }
 }
