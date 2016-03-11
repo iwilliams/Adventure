@@ -109,7 +109,7 @@ function init() {
         }
     }
 
-    var light = new THREE.AmbientLight( 0x111111 ); // soft white light
+    var light = new THREE.AmbientLight( 0x414141 ); // soft white light
     scene.add( light );
 
     renderer = new THREE.WebGLRenderer();
