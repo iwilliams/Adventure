@@ -8,14 +8,13 @@ var gulp       = require('gulp'),
     source     = require('vinyl-source-stream');
 
 var defaultTasks = [];
-
+var buildTasks = [];
 
 var bowerDir = function(dir) {
     return './bower_components/' + dir;
 };
 
 var includes = {
-    pixi: bowerDir('pixi.js/bin/'),
     three: './node_modules/three/'
 };
 
@@ -43,6 +42,7 @@ gulp.task('es6', function() {
       .pipe(gulp.dest('./dist/client'));
 });
 defaultTasks.push('es6');
+buildTasks.push('es6');
 
 // Compile es6 code
 // http://stackoverflow.com/questions/24992980/how-to-uglify-output-with-browserify-in-gulp
@@ -57,6 +57,7 @@ gulp.task('simulation-worker', function() {
       .pipe(gulp.dest('./dist/server'));
 });
 defaultTasks.push('simulation-worker');
+buildTasks.push('simulation-worker');
 
 // Vendor Scripts
 gulp.task('vendor-scripts', function() {
@@ -69,6 +70,7 @@ gulp.task('vendor-scripts', function() {
     .pipe(gulp.dest('./dist'));
 });
 defaultTasks.push('vendor-scripts');
+buildTasks.push('vendor-scripts');
 
 // Watches script directories and rebuilds on change
 gulp.task('watch-scripts', function() {
@@ -89,6 +91,7 @@ gulp.task('move-resources', function() {
         .pipe(gulp.dest('./dist/assets'));
 });
 defaultTasks.push('move-resources');
+buildTasks.push('move-resources');
 
 gulp.task('watch-resources', function() {
     gulp.watch(['./src/assets/**/*'], ['move-resources']);
@@ -100,6 +103,7 @@ gulp.task('move-html', function() {
         .pipe(gulp.dest('./dist'));
 });
 defaultTasks.push('move-html');
+buildTasks.push('move-html');
 
 gulp.task('watch-html', function() {
     gulp.watch(['./src/**/*.html'], ['move-html']);
@@ -107,3 +111,4 @@ gulp.task('watch-html', function() {
 defaultTasks.push('watch-html');
 
 gulp.task('default', defaultTasks);
+gulp.task('build', buildTasks);
