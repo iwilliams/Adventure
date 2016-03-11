@@ -79,7 +79,7 @@ function init() {
             switch(layout[z][x]) {
                 case 1:
                     var box = new THREE.BoxGeometry(tileSize, tileSize, tileSize);
-                    var material = new THREE.MeshBasicMaterial({
+                    var material = new THREE.MeshLambertMaterial({
                         color: 0xffffff,
                         map: texture1
                     });
@@ -91,7 +91,7 @@ function init() {
                     break;
                 case 2:
                     var box = new THREE.BoxGeometry(tileSize, 4*tileSize, tileSize);
-                    var material = new THREE.MeshBasicMaterial({
+                    var material = new THREE.MeshLambertMaterial({
                         color: 0xffffff,
                         map: texture2
                     });
@@ -108,6 +108,9 @@ function init() {
             mesh.receiveShadow = true;
         }
     }
+
+    var light = new THREE.AmbientLight( 0x111111 ); // soft white light
+    scene.add( light );
 
     renderer = new THREE.WebGLRenderer();
     renderer.setSize( window.innerWidth, window.innerHeight );
