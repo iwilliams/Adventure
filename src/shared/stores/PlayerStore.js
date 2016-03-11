@@ -24,6 +24,12 @@ export default class PlayerStore extends BaseStore {
     reduce(state, payload) {
         let {action, data} = payload;
 
+        switch(action) {
+            case 'move':
+                state = state.updateIn(['x'], x => x + data);
+                break;
+        }
+
         return state;
     }
 }
