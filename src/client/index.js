@@ -154,7 +154,7 @@ function animate() {
     let x            = playerState.get('x');
     let y            = playerState.get('y');
 
-    //camera.position.x = tiles[y][x].position.x;
+    camera.position.x = tiles[y][x].position.x;
     //camera.position.z = tiles[y][x].position.z;
     //camera.position.y = 100;
 
@@ -174,15 +174,15 @@ function animate() {
 
 var lastX, lastY;
 window.onmousemove = function(e) {
-    if(lastX && lastY) {
-        let dX = (lastX - e.clientX)*.05;
-        let dY = (lastY - e.clientY)*.05;
+    //if(lastX && lastY) {
+        //let dX = (lastX - e.clientX)*.05;
+        //let dY = (lastY - e.clientY)*.05;
 
-        let rotation = window.camera.rotation;
-        window.camera.rotation.set(rotation.x + dY, rotation.y + dX, rotation.z, 'YXZ');
-    }
-    lastX = e.clientX;
-    lastY = e.clientY;
+        //let rotation = window.camera.rotation;
+        //window.camera.rotation.set(rotation.x + dY, rotation.y + dX, rotation.z, 'YXZ');
+    //}
+    //lastX = e.clientX;
+    //lastY = e.clientY;
 }
 
 /**
@@ -225,26 +225,26 @@ function patchStore(payload) {
 window.onkeydown = function(e) {
     switch(e.keyCode) {
         // Left
-        case 65:
-        case 72:
-        case 37:
+        //case 65:
+        //case 72:
+        //case 37:
+            //worker.postMessage([MessageTypes.PLAYER_INPUT, -1]);
+            //break;
+        case 83:
+        case 74:
+        case 40:
             worker.postMessage([MessageTypes.PLAYER_INPUT, -1]);
             break;
-        //case 83:
-        //case 74:
-        //case 40:
-            //window.changeDir('d');
-            //break;
-        //case 87:
-        //case 75:
-        //case 38:
-            //window.changeDir('u');
-            //break;
-        // Right
-        case 68:
-        case 76:
-        case 39:
+        case 87:
+        case 75:
+        case 38:
             worker.postMessage([MessageTypes.PLAYER_INPUT, 1]);
             break;
+        // Right
+        //case 68:
+        //case 76:
+        //case 39:
+            //worker.postMessage([MessageTypes.PLAYER_INPUT, 1]);
+            //break;
     }
 }
