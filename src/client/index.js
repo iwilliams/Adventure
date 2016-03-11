@@ -46,7 +46,7 @@ function init() {
     scene.fog = new THREE.FogExp2(0x002211, 0.0020);
 
     camera = new THREE.PerspectiveCamera(...[
-            75,
+            60,
             window.innerWidth / window.innerHeight,
             1,
             10000
@@ -67,7 +67,7 @@ function init() {
     var texture2 = textureLoader.load("assets/wall_texture.png");
 
     texture1.wrapS = texture1.wrapT = THREE.RepeatWrapping;
-    texture1.repeat.set(5,5);
+    texture1.repeat.set(10,10);
 
     texture2.wrapS = texture2.wrapT = THREE.RepeatWrapping;
     texture2.repeat.set(5,20);
@@ -119,8 +119,6 @@ function init() {
         camera.updateProjectionMatrix();
 
         renderer.setSize( window.innerWidth, window.innerHeight );
-
-        controls.handleResize();
     }
 
     document.body.appendChild( renderer.domElement );
