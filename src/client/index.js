@@ -46,7 +46,7 @@ function init() {
     scene.fog = new THREE.FogExp2(0x002211, 0.0010);
 
     camera = new THREE.PerspectiveCamera(...[
-            60,
+            90,
             window.innerWidth / window.innerHeight,
             1,
             10000

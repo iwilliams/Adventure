@@ -31,20 +31,11 @@ export default class PlayerStore extends BaseStore {
 
         switch(action) {
             case 'move':
-                switch(state.get('dir')) {
-                    case DIR_NORTH:
-                        state = state.updateIn(['y'], y => y - data);
-                        break;
-                    case DIR_EAST:
-                        state = state.updateIn(['x'], x => x + data);
-                        break;
-                    case DIR_SOUTH:
-                        state = state.updateIn(['y'], y => y + data);
-                        break;
-                    case DIR_WEST:
-                        state = state.updateIn(['x'], x => x - data);
-                        break;
-                }
+                state = state.withMutations(s => {
+                    s = s.set('x', data[0]);
+                    s = s.set('y', data[1]);
+                    return s;
+                });
                 break;
             case 'turn':
                 state = state.updateIn(['dir'], dir => {
