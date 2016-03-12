@@ -20,9 +20,15 @@ function tick(frame) {
 
         // MessageType constants make this a bit more clear
         switch(messageType) {
-            case MessageConstants.PLAYER_INPUT:
+            case MessageConstants.PLAYER_MOVE:
                 gameDispatcher.dispatch({
                     'action': 'move',
+                    'data': payload[0]
+                });
+                break;
+            case MessageConstants.PLAYER_TURN:
+                gameDispatcher.dispatch({
+                    'action': 'turn',
                     'data': payload[0]
                 });
                 break;

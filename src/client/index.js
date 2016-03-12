@@ -43,7 +43,7 @@ function init() {
 
     scene = new THREE.Scene();
 
-    scene.fog = new THREE.FogExp2(0x002211, 0.0020);
+    scene.fog = new THREE.FogExp2(0x002211, 0.0010);
 
     camera = new THREE.PerspectiveCamera(...[
             60,
@@ -79,19 +79,14 @@ function init() {
             switch(layout[z][x]) {
                 case 1:
                     var box = new THREE.BoxGeometry(tileSize, tileSize, tileSize);
-                    var material = new THREE.MeshLambertMaterial({
+                    var material = new THREE.MeshBasicMaterial({
                         color: 0xffffff,
                         map: texture1
                     });
-            let mesh = new THREE.Mesh(box, material);
-            mesh.position.setY(2*tileSize);
-            mesh.position.setX(x*tileSize);
-            mesh.position.setZ(z*tileSize);
-            scene.add(mesh);
                     break;
                 case 2:
                     var box = new THREE.BoxGeometry(tileSize, 4*tileSize, tileSize);
-                    var material = new THREE.MeshLambertMaterial({
+                    var material = new THREE.MeshBasicMaterial({
                         color: 0xffffff,
                         map: texture2
                     });
@@ -156,7 +151,7 @@ function animate() {
     let y            = playerState.get('y');
 
     camera.position.x = tiles[y][x].position.x;
-    //camera.position.z = tiles[y][x].position.z;
+    camera.position.z = tiles[y][x].position.z;
     //camera.position.y = 100;
 
     // Get rid of camera twist
@@ -231,17 +226,19 @@ window.onkeydown = function(e) {
         case 37:
             var rotation = window.camera.rotation;
             window.camera.rotation.set(0, rotation.y + Math.PI/2, 0, 'XYZ');
-            //worker.postMessage([MessageTypes.PLAYER_INPUT, -1]);
+            worker.postMessage([MessageTypes.PLAYER_TURN, -1]);
             break;
+        // Back
         case 83:
         case 74:
         case 40:
-            worker.postMessage([MessageTypes.PLAYER_INPUT, -1]);
+            worker.postMessage([MessageTypes.PLAYER_MOVE, -1]);
             break;
+        // Up
         case 87:
         case 75:
         case 38:
-            worker.postMessage([MessageTypes.PLAYER_INPUT, 1]);
+            worker.postMessage([MessageTypes.PLAYER_MOVE, 1]);
             break;
         // Right
         case 68:
@@ -249,7 +246,7 @@ window.onkeydown = function(e) {
         case 39:
             var rotation = window.camera.rotation;
             window.camera.rotation.set(0, rotation.y - Math.PI/2, 0, 'XYZ');
-            //worker.postMessage([MessageTypes.PLAYER_INPUT, 1]);
+            worker.postMessage([MessageTypes.PLAYER_TURN, 1]);
             break;
     }
 }

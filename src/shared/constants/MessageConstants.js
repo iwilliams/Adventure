@@ -20,4 +20,5 @@ export const PATCH_STORE        = constIterator++;
 /**
  * Player messages
  */
-export const PLAYER_INPUT        = constIterator++;
+export const PLAYER_MOVE        = constIterator++;
+export const PLAYER_TURN        = constIterator++;
