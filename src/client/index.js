@@ -31,7 +31,7 @@ worker.onmessage = function(e) {
 }
 
 
-var scene, camera, renderer, mouseX, mouseY;
+var scene, camera, renderer, mouseX, mouseY, playerLight;
 
 var tiles = [];
 window.tiles = tiles;
@@ -79,14 +79,14 @@ function init() {
             switch(layout[z][x]) {
                 case 1:
                     var box = new THREE.BoxGeometry(tileSize, tileSize, tileSize);
-                    var material = new THREE.MeshBasicMaterial({
+                    var material = new THREE.MeshLambertMaterial({
                         color: 0xffffff,
                         map: texture1
                     });
                     break;
                 case 2:
                     var box = new THREE.BoxGeometry(tileSize, 4*tileSize, tileSize);
-                    var material = new THREE.MeshBasicMaterial({
+                    var material = new THREE.MeshLambertMaterial({
                         color: 0xffffff,
                         map: texture2
                     });
@@ -104,8 +104,11 @@ function init() {
         }
     }
 
-    var light = new THREE.AmbientLight( 0x414141 ); // soft white light
+    var light = new THREE.AmbientLight( 0x555555 ); // soft white light
     scene.add( light );
+
+    playerLight = new THREE.PointLight( 0xff0040, 1, 50 );
+    scene.add(playerLight);
 
     renderer = new THREE.WebGLRenderer();
     renderer.setSize( window.innerWidth, window.innerHeight );
@@ -127,6 +130,7 @@ function init() {
     camera.position.x = tiles[y][x].position.x;
     camera.position.z = tiles[y][x].position.z;
     camera.position.y = tileSize;
+
 
     let v = new THREE.Vector3(...[
         camera.position.x + tileSize,
@@ -152,18 +156,9 @@ function animate() {
 
     camera.position.x = tiles[y][x].position.x;
     camera.position.z = tiles[y][x].position.z;
-    //camera.position.y = 100;
-
-    // Get rid of camera twist
-    //camera.rotation.set(camera.rotation.x, 0, camera.rotation.z, camera.rotation.order);
-
-    //let v = new THREE.Vector3(...[
-        //camera.position.x + tileSize,
-        //camera.position.y,
-        //camera.position.z
-    //]);
-
-    //camera.lookAt(v);
+    playerLight.position.x = camera.position.x;
+    playerLight.position.z = camera.position.z;
+    playerLight.position.y = camera.position.y;
 
     renderer.render( scene, camera );
 }
