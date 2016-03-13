@@ -67,7 +67,7 @@ function init() {
     var texture2 = textureLoader.load("assets/wall_texture.png");
 
     texture1.wrapS = texture1.wrapT = THREE.RepeatWrapping;
-    texture1.repeat.set(10,10);
+    texture1.repeat.set(5, 5);
 
     texture2.wrapS = texture2.wrapT = THREE.RepeatWrapping;
     texture2.repeat.set(5,20);
