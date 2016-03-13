@@ -6,6 +6,7 @@ var gulp       = require('gulp'),
     uglify     = require('gulp-uglify'),
     webserver = require('gulp-webserver'),
     source     = require('vinyl-source-stream');
+    //source     = require('gulp-eslint');
 
 var defaultTasks = [];
 var buildTasks = [];
@@ -29,33 +30,28 @@ gulp.task('webserver', function() {
 });
 defaultTasks.push('webserver');
 
-// Compile es6 code
+// Helper function to transpile JS
 // http://stackoverflow.com/questions/24992980/how-to-uglify-output-with-browserify-in-gulp
-gulp.task('es6', function() {
-    browserify("./src/client/index.js", { debug: true })
-      .transform(babelify)
-      .bundle()
-      .on("error", function (err) { console.log("Error : " + err.message); })
-      .pipe(source('index.js'))
-      //.pipe(buffer())
-      //.pipe(uglify())
-      .pipe(gulp.dest('./dist/client'));
-});
-defaultTasks.push('es6');
-buildTasks.push('es6');
+function transpileJS(entryPoint, outputName, outputPath) {
+    return function() {
+        return browserify(entryPoint, { debug: true })
+          .transform(babelify)
+          .bundle()
+          .on("error", function (err) { console.log("Error : " + err.message); })
+          .pipe(source(outputName))
+          //.pipe(buffer())
+          //.pipe(uglify())
+          .pipe(gulp.dest(outputPath));
+    }
+}
 
-// Compile es6 code
-// http://stackoverflow.com/questions/24992980/how-to-uglify-output-with-browserify-in-gulp
-gulp.task('simulation-worker', function() {
-    browserify("./src/server/index.js", { debug: true })
-      .transform(babelify)
-      .bundle()
-      .on("error", function (err) { console.log("Error : " + err.message); })
-      .pipe(source('index.js'))
-      //.pipe(buffer())
-      //.pipe(uglify())
-      .pipe(gulp.dest('./dist/server'));
-});
+// Compile client es6 code
+gulp.task('client-code', transpileJS('./src/client/index.js', 'index.js', './dist/client'));
+defaultTasks.push('client-code');
+buildTasks.push('client-code');
+
+// Compile worker es6 code
+gulp.task('simulation-worker', transpileJS('./src/server/index.js', 'index.js', './dist/server'));
 defaultTasks.push('simulation-worker');
 buildTasks.push('simulation-worker');
 
@@ -82,7 +78,7 @@ gulp.task('watch-scripts', function() {
 
     gulp.watch([
         './src/**/*.js',
-    ], ['es6', 'simulation-worker']);
+    ], ['client-code', 'simulation-worker']);
 });
 defaultTasks.push('watch-scripts');
 

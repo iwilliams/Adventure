@@ -43,7 +43,7 @@ function init() {
 
     scene = new THREE.Scene();
 
-    scene.fog = new THREE.FogExp2(0x002211, 0.0010);
+    scene.fog = new THREE.FogExp2(0x000A00, 0.0020);
 
     camera = new THREE.PerspectiveCamera(...[
             90,
@@ -83,6 +83,13 @@ function init() {
                         color: 0xffffff,
                         map: texture1
                     });
+
+                    let mesh = new THREE.Mesh(box, material);
+                    mesh.position.setY(2*tileSize);
+                    mesh.position.setX(x*tileSize);
+                    mesh.position.setZ(z*tileSize);
+                    //tiles[z].push(mesh);
+                    scene.add(mesh);
                     break;
                 case 2:
                     var box = new THREE.BoxGeometry(tileSize, 4*tileSize, tileSize);
