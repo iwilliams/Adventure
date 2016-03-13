@@ -19,6 +19,7 @@ export default class PlayerStore extends BaseStore {
         return Immutable.fromJS({
             'x': 1,
             'y': 1,
+            'isMoving': false,
             'dir': DIR_EAST
         });
     }

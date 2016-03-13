@@ -13,17 +13,20 @@ postMessage([
     MessageConstants.INITIALIZE
 ]);
 
+let moveTick = 0;
 function tick(frame) {
+    var playerState = playerStore.getState();
+    var x           = playerState.get('x');
+    var y           = playerState.get('y');
+    var dir         = playerState.get('dir');
+
     // Proccess queued input
     while(messageQueue.length) {
         let [messageType, payload] = messageQueue.pop();
         // MessageType constants make this a bit more clear
         switch(messageType) {
             case MessageConstants.PLAYER_MOVE:
-                var playerState = playerStore.getState();
-                var x           = playerState.get('x');
-                var y           = playerState.get('y');
-                var dir         = playerState.get('dir');
+
                 var floorState  = floorStore.getState();
                 var layout      = floorState.get('layout');
 
@@ -49,6 +52,7 @@ function tick(frame) {
                 if(layout[y] !== undefined &&
                         layout[y][x] !== undefined &&
                         layout[y][x] === 1) {
+                    moveTick = 0;
                     gameDispatcher.dispatch({
                         'action': 'move',
                         'data': [x, y]

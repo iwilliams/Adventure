@@ -30,8 +30,7 @@ worker.onmessage = function(e) {
     }
 }
 
-
-var scene, camera, renderer, mouseX, mouseY, playerLight;
+var scene, camera, renderer, mouseX, mouseY;
 
 var tiles = [];
 window.tiles = tiles;
@@ -43,7 +42,7 @@ function init() {
 
     scene = new THREE.Scene();
 
-    scene.fog = new THREE.FogExp2(0x000A00, 0.0020);
+    scene.fog = new THREE.FogExp2(0x000A00, 0.0030);
 
     camera = new THREE.PerspectiveCamera(...[
             90,
@@ -114,9 +113,6 @@ function init() {
     var light = new THREE.AmbientLight( 0x555555 ); // soft white light
     scene.add( light );
 
-    playerLight = new THREE.PointLight( 0xff0040, 1, 50 );
-    scene.add(playerLight);
-
     renderer = new THREE.WebGLRenderer();
     renderer.setSize( window.innerWidth, window.innerHeight );
 
@@ -147,11 +143,21 @@ function init() {
 
     camera.lookAt(v);
 
-    animate();
+    requestAnimationFrame(animate);
 }
 
-function animate() {
-    requestAnimationFrame( animate );
+let lastTime = null;
+let deltaTime = null;
+function animate(currentTime) {
+    if(!lastTime) {
+        deltaTime   = 1;
+        lastTime    = currentTime;
+    } else {
+        deltaTime   = currentTime - lastTime;
+        lastTime    = currentTime;
+    }
+
+    requestAnimationFrame(animate);
 
     let floorStore   = StoreFactory.getByType(StoreConstants.FLOOR_STORE)[0];
     let floorState   = floorStore.getState();
@@ -163,24 +169,8 @@ function animate() {
 
     camera.position.x = tiles[y][x].position.x;
     camera.position.z = tiles[y][x].position.z;
-    playerLight.position.x = camera.position.x;
-    playerLight.position.z = camera.position.z;
-    playerLight.position.y = camera.position.y;
 
-    renderer.render( scene, camera );
-}
-
-var lastX, lastY;
-window.onmousemove = function(e) {
-    //if(lastX && lastY) {
-        //let dX = (lastX - e.clientX)*.05;
-        //let dY = (lastY - e.clientY)*.05;
-
-        //let rotation = window.camera.rotation;
-        //window.camera.rotation.set(rotation.x + dY, rotation.y + dX, rotation.z, 'YXZ');
-    //}
-    //lastX = e.clientX;
-    //lastY = e.clientY;
+    renderer.render(scene, camera);
 }
 
 /**
@@ -199,9 +189,6 @@ function createStore(payload) {
     let newStore = StoreFactory.create(storeType, storeId, state);
 }
 
-
-
-
 /**
  * Patch Stores
  */
@@ -212,10 +199,6 @@ function patchStore(payload) {
     let toPatch = StoreFactory.lookup(storeId);
     toPatch.patchState(patch);
 }
-
-
-
-
 
 /**
  * Change player dir

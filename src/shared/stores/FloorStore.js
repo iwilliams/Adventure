@@ -14,8 +14,6 @@ export default class FloorStore extends BaseStore {
 
     getInitialState() {
         return Immutable.Map({
-            rooms: rng.randomRange(1, 10),
-            currentRoom: 0,
             layout: [
                 [2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2],
                 [2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2],
@@ -30,7 +28,7 @@ export default class FloorStore extends BaseStore {
                 [2, 1, 1, 2, 2, 2, 2, 2, 1, 2, 1, 1, 2],
                 [2, 1, 1, 1, 1, 2, 1, 1, 1, 2, 1, 1, 2],
                 [2, 1, 1, 1, 1, 2, 1, 2, 2, 2, 1, 1, 2],
-                [2, 1, 1, 1, 1, 2, 1, 2, 1, 1, 1, 1, 2],
+                [2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2],
                 [2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2],
                 [2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2],
             ]
