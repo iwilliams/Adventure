@@ -169,30 +169,38 @@ function animate(currentTime) {
     let x            = playerState.get('x');
     let y            = playerState.get('y');
     let isMoving     = playerState.get('isMoving');
+    let movingTo     = playerState.get('movingTo');
     let speed        = playerState.get('speed');
     let dir          = playerState.get('dir');
 
     if(isMoving) {
         moveTick += (speed*deltaTime/1000);
         moveTick = moveTick >= 1 ? 1 : moveTick
-    }
 
-    if(isMoving) {
+        let moveOffset = moveTick*tileSize;
+
+        if((movingTo.get(0) < x && dir === 1) ||
+           (movingTo.get(0) > x && dir === 3) ||
+           (movingTo.get(1) > y && dir === 0) ||
+           (movingTo.get(1) < y && dir === 2)) {
+            moveOffset *= -1;
+        }
+
         switch (dir) {
             case 0:
                 camera.position.x = tiles[y][x].position.x;
-                camera.position.z = tiles[y][x].position.z - (moveTick*tileSize);
+                camera.position.z = tiles[y][x].position.z - moveOffset;
                 break;
             case 1:
-                camera.position.x = tiles[y][x].position.x + (moveTick*tileSize);
+                camera.position.x = tiles[y][x].position.x + moveOffset;
                 camera.position.z = tiles[y][x].position.z;
                 break;
             case 2:
                 camera.position.x = tiles[y][x].position.x;
-                camera.position.z = tiles[y][x].position.z + (moveTick*tileSize);
+                camera.position.z = tiles[y][x].position.z + moveOffset;
                 break;
             case 3:
-                camera.position.x = tiles[y][x].position.x - (moveTick*tileSize);
+                camera.position.x = tiles[y][x].position.x - moveOffset;
                 camera.position.z = tiles[y][x].position.z;
                 break;
         }
