@@ -14,11 +14,13 @@ postMessage([
 ]);
 
 let moveTick = 0;
-function tick(frame) {
+function tick(deltaTime) {
     var playerState = playerStore.getState();
     var x           = playerState.get('x');
     var y           = playerState.get('y');
     var dir         = playerState.get('dir');
+    var isMoving    = playerState.get('isMoving');
+    var speed       = playerState.get('speed');
 
     // Proccess queued input
     while(messageQueue.length) {
@@ -54,7 +56,7 @@ function tick(frame) {
                         layout[y][x] === 1) {
                     moveTick = 0;
                     gameDispatcher.dispatch({
-                        'action': 'move',
+                        'action': 'moveTo',
                         'data': [x, y]
                     });
                 }
@@ -68,8 +70,16 @@ function tick(frame) {
         }
     }
 
-    //let playerState = playerStore.getState();
-    //let floorState  = floorStore.getState();
+    if(isMoving) {
+        moveTick += speed*deltaTime/1000;
+    }
+
+    if(moveTick >= 1) {
+        moveTick = 0;
+        gameDispatcher.dispatch({
+            'action': 'stopMoving'
+        });
+    }
 }
 MainLoop.setSimulationFPS(GameConstants.SIMULATION_FPS);
 MainLoop.setUpdate(tick).start();

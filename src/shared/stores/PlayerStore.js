@@ -19,7 +19,10 @@ export default class PlayerStore extends BaseStore {
         return Immutable.fromJS({
             'x': 1,
             'y': 1,
+            'z': 1,
+            'speed': 3,
             'isMoving': false,
+            'movingTo': null,
             'dir': DIR_EAST
         });
     }
@@ -31,11 +34,19 @@ export default class PlayerStore extends BaseStore {
         let {action, data} = payload;
 
         switch(action) {
-            case 'move':
+            case 'moveTo':
                 state = state.withMutations(s => {
-                    s = s.set('x', data[0]);
-                    s = s.set('y', data[1]);
-                    return s;
+                    s = s.set('isMoving', true);
+                    s = s.set('movingTo', [data[0], data[1]]);
+                });
+                break;
+            case 'stopMoving':
+                state = state.withMutations(s => {
+                    let movingTo = s.get('movingTo');
+                    s = s.set('x', movingTo[0]);
+                    s = s.set('y', movingTo[1]);
+                    s = s.set('isMoving', false);
+                    s = s.set('movingTo', null);
                 });
                 break;
             case 'turn':

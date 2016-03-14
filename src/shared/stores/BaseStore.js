@@ -23,6 +23,8 @@ export default class BaseStore {
 
     get id() { return this.__id }
 
+    get state() { return this._state }
+
     /**
      * Reduce the state
      */

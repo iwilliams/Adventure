@@ -36,6 +36,7 @@ var tiles = [];
 window.tiles = tiles;
 
 var tileSize = GameConstants.TILE_SIZE;
+var playerStore;
 
 var controls;
 function init() {
@@ -125,7 +126,8 @@ function init() {
 
     document.body.appendChild( renderer.domElement );
 
-    let playerStore  = StoreFactory.getByType(StoreConstants.PLAYER_STORE)[0];
+    playerStore  = StoreFactory.getByType(StoreConstants.PLAYER_STORE)[0];
+    window.playerStore = playerStore;
     let playerState  = playerStore.getState();
     let x            = playerState.get('x');
     let y            = playerState.get('y');
@@ -148,6 +150,7 @@ function init() {
 
 let lastTime = null;
 let deltaTime = null;
+let moveTick = 0;
 function animate(currentTime) {
     if(!lastTime) {
         deltaTime   = 1;
@@ -162,13 +165,42 @@ function animate(currentTime) {
     let floorStore   = StoreFactory.getByType(StoreConstants.FLOOR_STORE)[0];
     let floorState   = floorStore.getState();
 
-    let playerStore  = StoreFactory.getByType(StoreConstants.PLAYER_STORE)[0];
     let playerState  = playerStore.getState();
     let x            = playerState.get('x');
     let y            = playerState.get('y');
+    let isMoving     = playerState.get('isMoving');
+    let speed        = playerState.get('speed');
+    let dir          = playerState.get('dir');
 
-    camera.position.x = tiles[y][x].position.x;
-    camera.position.z = tiles[y][x].position.z;
+    if(isMoving) {
+        moveTick += (speed*deltaTime/1000);
+        moveTick = moveTick >= 1 ? 1 : moveTick
+    }
+
+    if(isMoving) {
+        switch (dir) {
+            case 0:
+                camera.position.x = tiles[y][x].position.x;
+                camera.position.z = tiles[y][x].position.z - (moveTick*tileSize);
+                break;
+            case 1:
+                camera.position.x = tiles[y][x].position.x + (moveTick*tileSize);
+                camera.position.z = tiles[y][x].position.z;
+                break;
+            case 2:
+                camera.position.x = tiles[y][x].position.x;
+                camera.position.z = tiles[y][x].position.z + (moveTick*tileSize);
+                break;
+            case 3:
+                camera.position.x = tiles[y][x].position.x - (moveTick*tileSize);
+                camera.position.z = tiles[y][x].position.z;
+                break;
+        }
+    } else {
+        moveTick = 0;
+        camera.position.x = tiles[y][x].position.x;
+        camera.position.z = tiles[y][x].position.z;
+    }
 
     renderer.render(scene, camera);
 }
@@ -177,7 +209,6 @@ function animate(currentTime) {
  * Create Stores
  */
 let gameStore;
-let playerStore;
 let floorStore;
 window.StoreFactory = StoreFactory;
 
@@ -204,34 +235,38 @@ function patchStore(payload) {
  * Change player dir
  */
 window.onkeydown = function(e) {
-    switch(e.keyCode) {
-        // Left
-        case 65:
-        case 72:
-        case 37:
-            var rotation = window.camera.rotation;
-            window.camera.rotation.set(0, rotation.y + Math.PI/2, 0, 'XYZ');
-            worker.postMessage([MessageTypes.PLAYER_TURN, -1]);
-            break;
-        // Back
-        case 83:
-        case 74:
-        case 40:
-            worker.postMessage([MessageTypes.PLAYER_MOVE, -1]);
-            break;
-        // Up
-        case 87:
-        case 75:
-        case 38:
-            worker.postMessage([MessageTypes.PLAYER_MOVE, 1]);
-            break;
-        // Right
-        case 68:
-        case 76:
-        case 39:
-            var rotation = window.camera.rotation;
-            window.camera.rotation.set(0, rotation.y - Math.PI/2, 0, 'XYZ');
-            worker.postMessage([MessageTypes.PLAYER_TURN, 1]);
-            break;
+    if(!playerStore.state.get('isMoving')) {
+        switch(e.keyCode) {
+            // Left
+            case 65:
+            case 72:
+            case 37:
+                var rotation = window.camera.rotation;
+                window.camera.rotation.set(0, rotation.y + Math.PI/2, 0, 'XYZ');
+                worker.postMessage([MessageTypes.PLAYER_TURN, -1]);
+                break;
+            // Back
+            case 83:
+            case 74:
+            case 40:
+                moveTick = 0;
+                worker.postMessage([MessageTypes.PLAYER_MOVE, -1]);
+                break;
+            // Up
+            case 87:
+            case 75:
+            case 38:
+                moveTick = 0;
+                worker.postMessage([MessageTypes.PLAYER_MOVE, 1]);
+                break;
+            // Right
+            case 68:
+            case 76:
+            case 39:
+                var rotation = window.camera.rotation;
+                window.camera.rotation.set(0, rotation.y - Math.PI/2, 0, 'XYZ');
+                worker.postMessage([MessageTypes.PLAYER_TURN, 1]);
+                break;
+        }
     }
 }
