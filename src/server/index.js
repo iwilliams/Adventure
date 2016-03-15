@@ -13,14 +13,17 @@ postMessage([
     MessageConstants.INITIALIZE
 ]);
 
-let moveTick = 0;
+let moveTick = 0,
+    turnTick = 0;
 function tick(deltaTime) {
     var playerState = playerStore.getState();
     var x           = playerState.get('x');
     var y           = playerState.get('y');
     var dir         = playerState.get('dir');
     var isMoving    = playerState.get('isMoving');
+    var isTurning   = playerState.get('isTurning');
     var speed       = playerState.get('speed');
+    var turnSpeed   = playerState.get('turnSpeed');
 
     // Proccess queued input
     while(messageQueue.length) {
@@ -62,23 +65,40 @@ function tick(deltaTime) {
                 }
                 break;
             case MessageConstants.PLAYER_TURN:
+                dir = (dir + payload[0])%4;
+                if(dir < 0) {
+                   dir = 4 + dir;
+                }
                 gameDispatcher.dispatch({
-                    'action': 'turn',
-                    'data': payload[0]
+                    'action': 'turnTo',
+                    'data': dir
                 });
                 break;
         }
     }
 
+    // Calculate movement
     if(isMoving) {
         moveTick += speed*deltaTime/1000;
+
+        if(moveTick >= 1) {
+            moveTick = 0;
+            gameDispatcher.dispatch({
+                'action': 'stopMoving'
+            });
+        }
     }
 
-    if(moveTick >= 1) {
-        moveTick = 0;
-        gameDispatcher.dispatch({
-            'action': 'stopMoving'
-        });
+    // Calculate turning
+    if(isTurning) {
+        turnTick += turnSpeed*deltaTime/1000;
+
+        if(turnTick >= Math.PI/2) {
+            turnTick = 0;
+            gameDispatcher.dispatch({
+                'action': 'stopTurning'
+            });
+        }
     }
 }
 MainLoop.setSimulationFPS(GameConstants.SIMULATION_FPS);
