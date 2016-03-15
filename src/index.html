@@ -1,5 +1,6 @@
 <html>
     <head>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
         <style>
             body {
                 background: #000000;
@@ -8,9 +9,64 @@
                 margin: 0;
                 padding: 0;
             }
+
+            .control-container {
+                position: absolute;
+                top: 0;
+                bottom: 0;
+                width: 50%;
+            }
+
+            .control-container.left {
+                left: 0;
+            }
+
+            .control-container.right {
+                right: 0;
+            }
+
+            #control-up {
+                position: absolute;
+                width: 100%;
+                height: 50%;
+                top: 0;
+                left: 0;
+            }
+
+            #control-down {
+                position: absolute;
+                width: 100%;
+                height: 50%;
+                bottom: 0;
+                left: 0;
+            }
+
+            #control-left {
+                position: absolute;
+                width: 50%;
+                height: 100%;
+                bottom: 0;
+                left: 0;
+            }
+
+            #control-right {
+                position: absolute;
+                width: 50%;
+                height: 100%;
+                bottom: 0;
+                right: 0;
+            }
         </style>
     </head>
     <body>
+        <div class="control-container left">
+            <div id="control-up"></div>
+            <div id="control-down"></div>
+        </div>
+        <div class="control-container right">
+            <div id="control-left"></div>
+            <div id="control-right"></div>
+        </div>
         <!--<script src="./vendor.js"></script>-->
         <script src="./client/index.js"></script>
     </body>

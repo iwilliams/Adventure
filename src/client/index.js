@@ -270,6 +270,24 @@ function patchStore(payload) {
     toPatch.patchState(patch);
 }
 
+document.getElementById('control-up').onclick = function() {
+    moveTick = 0;
+    worker.postMessage([MessageTypes.PLAYER_MOVE, 1]);
+};
+
+document.getElementById('control-down').onclick = function() {
+    moveTick = 0;
+    worker.postMessage([MessageTypes.PLAYER_MOVE, -1]);
+};
+
+document.getElementById('control-left').onclick = function() {
+    worker.postMessage([MessageTypes.PLAYER_TURN, -1]);
+};
+
+document.getElementById('control-right').onclick = function() {
+    worker.postMessage([MessageTypes.PLAYER_TURN, 1]);
+};
+
 /**
  * Change player dir
  */
