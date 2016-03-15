@@ -22,6 +22,7 @@ export default class PlayerStore extends BaseStore {
             'z': 1,
             'speed': 2,
             'isMoving': false,
+            'isTurning': false,
             'movingTo': null,
             'dir': DIR_EAST
         });
