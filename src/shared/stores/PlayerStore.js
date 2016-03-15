@@ -3,10 +3,7 @@ import Immutable            from 'immutable';
 import gameDispatcher       from '../dispatcher/GameDispatcher';
 import * as StoreConstants  from '../constants/StoreConstants';
 
-const DIR_NORTH     = 0;
-const DIR_EAST      = 1;
-const DIR_SOUTH     = 2;
-const DIR_WEST      = 3;
+import { DIR_NORTH, DIR_EAST, DIR_SOUTH, DIR_WEST } from '../constants/GameConstants';
 
 export default class PlayerStore extends BaseStore {
 
@@ -20,10 +17,12 @@ export default class PlayerStore extends BaseStore {
             'x': 1,
             'y': 1,
             'z': 1,
-            'speed': 2,
+            'speed': 3,
+            'turnSpeed': 7,
             'isMoving': false,
             'isTurning': false,
             'movingTo': null,
+            'turningTo': null,
             'dir': DIR_EAST
         });
     }
@@ -48,6 +47,18 @@ export default class PlayerStore extends BaseStore {
                     s = s.set('y', movingTo[1]);
                     s = s.set('isMoving', false);
                     s = s.set('movingTo', null);
+                });
+                break;
+            case 'turnTo':
+                state = state.withMutations(s => {
+                    s = s.set('isTurning', true);
+                    s = s.set('turningTo', data);
+                });
+                break;
+            case 'stopTurning':
+                state = state.withMutations(s => {
+                    s = s.set('isTurning', false);
+                    s = s.set('dir', s.get('turningTo'));
                 });
                 break;
             case 'turn':

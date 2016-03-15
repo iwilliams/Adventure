@@ -43,7 +43,7 @@ function init() {
 
     scene = new THREE.Scene();
 
-    scene.fog = new THREE.FogExp2(0x000A00, 0.0030);
+    scene.fog = new THREE.FogExp2(0x000A00, .01);
 
     camera = new THREE.PerspectiveCamera(...[
             90,
@@ -148,9 +148,13 @@ function init() {
     requestAnimationFrame(animate);
 }
 
-let lastTime = null;
-let deltaTime = null;
-let moveTick = 0;
+// Define animation variables
+let lastTime    = null,
+    deltaTime   = null,
+    moveTick    = 0,
+    turnTick    = 0;
+
+// Animation frame
 function animate(currentTime) {
     if(!lastTime) {
         deltaTime   = 1;
@@ -162,17 +166,24 @@ function animate(currentTime) {
 
     requestAnimationFrame(animate);
 
+    // This needs to be re-thought
     let floorStore   = StoreFactory.getByType(StoreConstants.FLOOR_STORE)[0];
     let floorState   = floorStore.getState();
 
     let playerState  = playerStore.getState();
-    let x            = playerState.get('x');
-    let y            = playerState.get('y');
-    let isMoving     = playerState.get('isMoving');
-    let movingTo     = playerState.get('movingTo');
-    let speed        = playerState.get('speed');
-    let dir          = playerState.get('dir');
+    let {
+            x,
+            y,
+            isMoving,
+            isTurning,
+            movingTo,
+            turningTo,
+            speed,
+            turnSpeed,
+            dir
+        } = playerState.toObject();
 
+    // Animate movement
     if(isMoving) {
         moveTick += (speed*deltaTime/1000);
         moveTick = moveTick >= 1 ? 1 : moveTick
@@ -210,6 +221,26 @@ function animate(currentTime) {
         camera.position.z = tiles[y][x].position.z;
     }
 
+    // Animate turning
+    if(isTurning) {
+        turnTick += (turnSpeed*deltaTime/1000);
+        turnTick = turnTick >= Math.PI/2 ? Math.PI/2 : turnTick
+
+        //let turnOffset = (-dir*Math.PI/2) + turnTick;
+        let turnOffset = (-dir*Math.PI/2);
+
+        if(dir == 0 && turningTo == 1) turnOffset -= turnTick;
+        else if(dir == 1 && turningTo == 2) turnOffset -= turnTick;
+        else if(dir == 2 && turningTo == 3) turnOffset -= turnTick;
+        else if(dir == 3 && turningTo == 0) turnOffset -= turnTick;
+        else turnOffset += turnTick;
+
+        window.camera.rotation.set(0, turnOffset, 0, 'XYZ');
+    } else {
+        turnTick = 0;
+        window.camera.rotation.set(0, -dir*Math.PI/2, 0, 'XYZ');
+    }
+
     renderer.render(scene, camera);
 }
 
@@ -243,14 +274,13 @@ function patchStore(payload) {
  * Change player dir
  */
 window.onkeydown = function(e) {
-    if(!playerStore.state.get('isMoving')) {
+    if(!playerStore.state.get('isMoving') && !playerStore.state.get('isTurning')) {
         switch(e.keyCode) {
             // Left
             case 65:
             case 72:
             case 37:
-                var rotation = window.camera.rotation;
-                window.camera.rotation.set(0, rotation.y + Math.PI/2, 0, 'XYZ');
+                //window.camera.rotation.set(0, rotation.y + Math.PI/2, 0, 'XYZ');
                 worker.postMessage([MessageTypes.PLAYER_TURN, -1]);
                 break;
             // Back
@@ -271,8 +301,7 @@ window.onkeydown = function(e) {
             case 68:
             case 76:
             case 39:
-                var rotation = window.camera.rotation;
-                window.camera.rotation.set(0, rotation.y - Math.PI/2, 0, 'XYZ');
+                //window.camera.rotation.set(0, rotation.y - Math.PI/2, 0, 'XYZ');
                 worker.postMessage([MessageTypes.PLAYER_TURN, 1]);
                 break;
         }
