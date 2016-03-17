@@ -5,7 +5,6 @@ import {randomId}               from '../utils/Utils';
 import dispatcher               from '../dispatcher/GameDispatcher';
 
 // Stores
-import GameStore            from '../stores/GameStore';
 import PlayerStore          from '../stores/PlayerStore';
 import FloorStore           from '../stores/FloorStore';
 

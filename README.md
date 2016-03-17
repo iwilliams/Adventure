@@ -15,3 +15,21 @@ Most of the magic happens in `src/client/index.js` and `src/server/index.js`. Th
 I try to stream development semi-frequently over at [http://twitch.tv/ianawill](http://twitch.tv/ianawill) and the latest stable build of the game can be found at [http://iwillia.ms](http://iwillia.ms). If you have any questions about what I'm doing here feel free to get in touch or make a pull request/open an issue.
 
 This code comes with no warranty.
+
+# Task List
+- [x] Basic Engine Structure
+- [x] Implement Basic Renderer
+- [x] Animation Interpolation
+- [ ] Implement Lighting System
+- [ ] Import Models
+- [ ] Bumpmap Textures
+- [ ] Split Up Rendering Code Into Views/View-Controllers
+- [ ] Allow Export of Screenshots and WebM
+- [x] Basic Dungeon Data Structure
+- [ ] Add Support for Dungeon Verticality
+- [ ] Implement Dungeon Generation Algorithm
+- [x] Basic Player Movement
+- [ ] Flesh Out Game Mechanics
+- [ ] Implement Battle System
+- [ ] Seperate Engine Code from Game Code
+- [ ] Add More Tasks
