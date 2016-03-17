@@ -1,4 +1,4 @@
-import MainLoop             from '../shared/mainloop';
+import MainLoop             from 'mainloop.js';
 import StoreFactory         from '../shared/services/StoreFactory';
 import gameDispatcher       from '../shared/dispatcher/GameDispatcher';
 
@@ -101,7 +101,7 @@ function tick(deltaTime) {
         }
     }
 }
-MainLoop.setSimulationFPS(GameConstants.SIMULATION_FPS);
+MainLoop.setSimulationTimestep(1000/GameConstants.SIMULATION_FPS);
 MainLoop.setUpdate(tick).start();
 
 let messageQueue = [];
