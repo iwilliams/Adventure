@@ -4,7 +4,13 @@ You will need `node` and `gulp` installed to run and build this project.
 
 `npm install && gulp build`
 
-Navigate to `localhost:3000` or run `electron .`
+## Develop in Browser
+
+`gulp` and Navigate to `localhost:3000`.
+
+## Run as native app
+
+`electron .`
 
 # Project Details
 
