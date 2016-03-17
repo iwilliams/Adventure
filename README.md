@@ -32,4 +32,6 @@ This code comes with no warranty.
 - [ ] Flesh Out Game Mechanics
 - [ ] Implement Battle System
 - [ ] Seperate Engine Code from Game Code
+- [x] Native Desktop App Build
+- [ ] Native Mobile App Build
 - [ ] Add More Tasks
