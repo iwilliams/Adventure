@@ -16,7 +16,7 @@ export const IS_SERVER = is_server;
 export const SIMULATION_FPS = 30;
 export const GAME_WIDTH     = 40;
 export const GAME_HEIGHT    = 40;
-export const TILE_SIZE      = 64;
+export const TILE_SIZE      = 10;
 
 /**
  * Cardinal directions

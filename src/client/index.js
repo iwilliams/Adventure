@@ -43,7 +43,7 @@ function init() {
 
     scene = new THREE.Scene();
 
-    scene.fog = new THREE.FogExp2(0x000A00, .01);
+    scene.fog = new THREE.FogExp2(0x000A00, .06);
 
     camera = new THREE.PerspectiveCamera(...[
             90,
@@ -68,12 +68,57 @@ function init() {
     texture2.wrapS = texture2.wrapT = THREE.RepeatWrapping;
     texture2.repeat.set(5, 5);
 
+    var directionalLight = new THREE.DirectionalLight( 0xffeedd );
+    directionalLight.position.set( tileSize, -tileSize, tileSize).normalize();
+    scene.add( directionalLight );
+
+    var light = new THREE.AmbientLight( 0xaaaaaa ); // soft white light
+    scene.add( light );
+
+    // instantiate a loader
+    var loader = new THREE.JSONLoader();
+
+    // load a resource
+    loader.load(
+        // resource URL
+        '/assets/throne.json',
+        // Function when resource is loaded
+        function ( geometry, materials ) {
+            var material = new THREE.MultiMaterial( materials );
+            var object = new THREE.Mesh( geometry, material );
+            object.position.y = -tileSize;
+            object.position.x = 2*tileSize;
+            object.position.z = tileSize;
+            //object.scale.set(10, 10, 10);
+            window.crate = object;
+
+            scene.add( object );
+        }
+    );
+
+    //var objLoader = new THREE.OBJLoader();
+    //var material = new THREE.MeshBasicMaterial({color: 'yellow'});
+    //objLoader.load('/assets/models/crate.obj', function (obj) {
+        //obj.traverse(function (child) {
+            //if (child instanceof THREE.Mesh) {
+                //child.material = material;
+            //}
+        //});
+        //window.crate = obj;
+        //obj.position.y = -tileSize;
+        //obj.position.x = 2*tileSize;
+        //obj.position.z = tileSize;
+        //scene.add(obj);
+    //});
+
     // Draw floor layout
     for(let y = 0; y < layout.length; y++) {
         for(let z = 0; z < layout[y].length; z++) {
             for(let x = 0; x < layout[y][z].length; x++) {
 
-                switch(layout[y][z][x].type) {
+                let tile = layout[y][z][x];
+
+                switch(tile.type) {
                     case 1:
                         var box = new THREE.BoxGeometry(tileSize, tileSize, tileSize);
                         var material = new THREE.MeshLambertMaterial({
@@ -89,7 +134,8 @@ function init() {
                         });
                         break;
                 }
-                if(layout[y][z][x].type !== 0) {
+
+                if(tile.type !== 0) {
                     let mesh = new THREE.Mesh(box, material);
                     mesh.position.setX(x*tileSize);
                     mesh.position.setY(-y*tileSize);
@@ -98,12 +144,13 @@ function init() {
 
                     mesh.receiveShadow = true;
                 }
+
+                if(tile.item === 0) {
+                    console.log('item');
+                }
             }
         }
     }
-
-    var light = new THREE.AmbientLight( 0x555555 ); // soft white light
-    scene.add( light );
 
     renderer = new THREE.WebGLRenderer();
     renderer.setSize( window.innerWidth, window.innerHeight );

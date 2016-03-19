@@ -33,6 +33,10 @@ export function generateDungeon() {
                     tileToAdd = createTile(TILE_FLOOR);
                 }
 
+                if(y === 1 && x === 3 && z === 3) {
+                    tileToAdd = createTile(TILE_AIR, 0);
+                }
+
                 tiles[y][z].push(tileToAdd);
             }
         }
