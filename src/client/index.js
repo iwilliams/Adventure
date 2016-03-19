@@ -53,7 +53,7 @@ function init() {
     ]);
     window.camera = camera;
 
-    camera.position.z = 500;
+    camera.position.z = 100;
     camera.position.y = 2*tileSize;
     camera.position.x = 0;
 
