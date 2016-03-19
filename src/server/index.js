@@ -19,6 +19,7 @@ function tick(deltaTime) {
     var playerState = playerStore.getState();
     var x           = playerState.get('x');
     var y           = playerState.get('y');
+    var z           = playerState.get('z');
     var dir         = playerState.get('dir');
     var isMoving    = playerState.get('isMoving');
     var isTurning   = playerState.get('isTurning');
@@ -40,13 +41,13 @@ function tick(deltaTime) {
 
                 switch(dir) {
                     case 0:
-                        y = y - payload;
+                        z = z - payload;
                         break;
                     case 1:
                         x = x + payload;
                         break;
                     case 2:
-                        y = y + payload;
+                        z = z + payload;
                         break;
                     case 3:
                         x = x - payload;
@@ -55,12 +56,12 @@ function tick(deltaTime) {
 
                 // Check collision
                 if(layout[y] !== undefined &&
-                        layout[y][x] !== undefined &&
-                        layout[y][x] === 1) {
+                        layout[y][z][x] !== undefined &&
+                        layout[y][z][x] === 0) {
                     moveTick = 0;
                     gameDispatcher.dispatch({
                         'action': 'moveTo',
-                        'data': [x, y]
+                        'data': [x, z]
                     });
                 }
                 break;

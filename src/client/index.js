@@ -53,10 +53,6 @@ function init() {
     ]);
     window.camera = camera;
 
-    camera.position.z = 100;
-    camera.position.y = 2*tileSize;
-    camera.position.x = 0;
-
     let floorStore   = StoreFactory.getByType(StoreConstants.FLOOR_STORE)[0];
     let floorState   = floorStore.getState();
     let layout       = floorState.get('layout').toJS();
@@ -70,44 +66,38 @@ function init() {
     texture1.repeat.set(5, 5);
 
     texture2.wrapS = texture2.wrapT = THREE.RepeatWrapping;
-    texture2.repeat.set(5,20);
+    texture2.repeat.set(5, 5);
 
     // Draw floor layout
-    for(let z = 0; z < layout.length; z++) {
-        tiles[z] = []
-        for(let x = 0; x < layout.length; x++) {
-            switch(layout[z][x]) {
-                case 1:
-                    var box = new THREE.BoxGeometry(tileSize, tileSize, tileSize);
-                    var material = new THREE.MeshLambertMaterial({
-                        color: 0xffffff,
-                        map: texture1
-                    });
-
+    for(let y = 0; y < layout.length; y++) {
+        for(let z = 0; z < layout[y].length; z++) {
+            for(let x = 0; x < layout[y][z].length; x++) {
+                switch(layout[y][z][x]) {
+                    case 1:
+                        var box = new THREE.BoxGeometry(tileSize, tileSize, tileSize);
+                        var material = new THREE.MeshLambertMaterial({
+                            color: 0xffffff,
+                            map: texture1
+                        });
+                        break;
+                    case 2:
+                        var box = new THREE.BoxGeometry(tileSize, tileSize, tileSize);
+                        var material = new THREE.MeshLambertMaterial({
+                            color: 0xffffff,
+                            map: texture2
+                        });
+                        break;
+                }
+                if(layout[y][z][x] !== 0) {
                     let mesh = new THREE.Mesh(box, material);
-                    mesh.position.setY(2*tileSize);
                     mesh.position.setX(x*tileSize);
+                    mesh.position.setY(-y*tileSize);
                     mesh.position.setZ(z*tileSize);
-                    //tiles[z].push(mesh);
                     scene.add(mesh);
-                    break;
-                case 2:
-                    var box = new THREE.BoxGeometry(tileSize, 4*tileSize, tileSize);
-                    var material = new THREE.MeshLambertMaterial({
-                        color: 0xffffff,
-                        map: texture2
-                    });
-                    break;
+
+                    mesh.receiveShadow = true;
+                }
             }
-
-            let mesh = new THREE.Mesh(box, material);
-            mesh.position.setY(0);
-            mesh.position.setX(x*tileSize);
-            mesh.position.setZ(z*tileSize);
-            tiles[z].push(mesh);
-            scene.add(mesh);
-
-            mesh.receiveShadow = true;
         }
     }
 
@@ -128,13 +118,15 @@ function init() {
 
     playerStore  = StoreFactory.getByType(StoreConstants.PLAYER_STORE)[0];
     window.playerStore = playerStore;
+
     let playerState  = playerStore.getState();
     let x            = playerState.get('x');
     let y            = playerState.get('y');
+    let z            = playerState.get('z');
 
-    camera.position.x = tiles[y][x].position.x;
-    camera.position.z = tiles[y][x].position.z;
-    camera.position.y = tileSize;
+    camera.position.x = x*tileSize;
+    camera.position.y = -y*tileSize;
+    camera.position.z = z*tileSize;
 
 
     let v = new THREE.Vector3(...[
@@ -174,6 +166,7 @@ function animate(currentTime) {
     let {
             x,
             y,
+            z,
             isMoving,
             isTurning,
             movingTo,
@@ -192,33 +185,34 @@ function animate(currentTime) {
 
         if((movingTo.get(0) < x && dir === 1) ||
            (movingTo.get(0) > x && dir === 3) ||
-           (movingTo.get(1) > y && dir === 0) ||
-           (movingTo.get(1) < y && dir === 2)) {
+           (movingTo.get(1) > z && dir === 0) ||
+           (movingTo.get(1) < z && dir === 2)) {
             moveOffset *= -1;
         }
 
         switch (dir) {
             case 0:
-                camera.position.x = tiles[y][x].position.x;
-                camera.position.z = tiles[y][x].position.z - moveOffset;
+                camera.position.x = x*tileSize;
+                camera.position.z = z*tileSize - moveOffset;
                 break;
             case 1:
-                camera.position.x = tiles[y][x].position.x + moveOffset;
-                camera.position.z = tiles[y][x].position.z;
+                camera.position.x = x*tileSize + moveOffset;
+                camera.position.z = z*tileSize;
                 break;
             case 2:
-                camera.position.x = tiles[y][x].position.x;
-                camera.position.z = tiles[y][x].position.z + moveOffset;
+                camera.position.x = x*tileSize;
+                camera.position.z = z*tileSize + moveOffset;
                 break;
             case 3:
-                camera.position.x = tiles[y][x].position.x - moveOffset;
-                camera.position.z = tiles[y][x].position.z;
+                camera.position.x = x*tileSize - moveOffset;
+                camera.position.z = z*tileSize;
                 break;
         }
     } else {
         moveTick = 0;
-        camera.position.x = tiles[y][x].position.x;
-        camera.position.z = tiles[y][x].position.z;
+        camera.position.x = x*tileSize;
+        camera.position.y = -y*tileSize;
+        camera.position.z = z*tileSize;
     }
 
     // Animate turning

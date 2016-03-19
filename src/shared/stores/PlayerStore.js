@@ -44,7 +44,7 @@ export default class PlayerStore extends BaseStore {
                 state = state.withMutations(s => {
                     let movingTo = s.get('movingTo');
                     s = s.set('x', movingTo[0]);
-                    s = s.set('y', movingTo[1]);
+                    s = s.set('z', movingTo[1]);
                     s = s.set('isMoving', false);
                     s = s.set('movingTo', null);
                 });
