@@ -57,9 +57,9 @@ function tick(deltaTime) {
                 // Check collision
                 if(layout[y] !== undefined &&
                         layout[y][z][x] !== undefined &&
-                        layout[y][z][x] === 0 &&
+                        layout[y][z][x].type === 0 &&
                         layout[y+1][z][x] !== undefined &&
-                        layout[y+1][z][x] !== 0) {
+                        layout[y+1][z][x].type !== 0) {
                     moveTick = 0;
                     gameDispatcher.dispatch({
                         'action': 'moveTo',

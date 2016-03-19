@@ -1,5 +1,5 @@
 import BaseStore            from './BaseStore';
-//import {generateFloor}  from '../dungeon';
+import {generateDungeon}      from '../services/DungeonFactory';
 import * as rng             from '../utils/Rng';
 import Immutable            from 'immutable';
 import * as GameConstants   from '../constants/GameConstants';
@@ -14,29 +14,7 @@ export default class FloorStore extends BaseStore {
 
     getInitialState() {
         return Immutable.Map({
-            layout: [
-                [[1, 1, 1, 1, 1, 1, 1],
-                 [1, 1, 1, 1, 1, 1, 1],
-                 [1, 1, 1, 1, 1, 1, 1],
-                 [1, 1, 1, 1, 1, 1, 1],
-                 [1, 1, 1, 1, 1, 1, 1],
-                 [1, 1, 1, 1, 1, 1, 1],
-                 [1, 1, 1, 1, 1, 1, 1]],
-                [[2, 2, 2, 2, 2, 2, 2, 0, 0, 2, 2, 2, 2, 2],
-                 [2, 0, 0, 0, 0, 0, 2, 0, 0, 2, 0, 0, 0, 2],
-                 [2, 0, 2, 0, 2, 0, 2, 2, 2, 2, 0, 0, 0, 2],
-                 [2, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2],
-                 [2, 0, 2, 0, 2, 0, 2, 2, 2, 2, 0, 0, 0, 2],
-                 [2, 0, 0, 0, 0, 0, 2, 0, 0, 2, 0 ,0, 0, 2],
-                 [2, 2, 2, 2, 2, 2, 2, 0, 0, 2, 2 ,2, 2, 2]],
-                [[1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-                 [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-                 [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-                 [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1],
-                 [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-                 [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 ,1, 1, 1],
-                 [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 ,1, 1, 1]],
-            ]
+            layout: generateDungeon()
         });
     }
 

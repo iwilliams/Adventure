@@ -72,7 +72,8 @@ function init() {
     for(let y = 0; y < layout.length; y++) {
         for(let z = 0; z < layout[y].length; z++) {
             for(let x = 0; x < layout[y][z].length; x++) {
-                switch(layout[y][z][x]) {
+
+                switch(layout[y][z][x].type) {
                     case 1:
                         var box = new THREE.BoxGeometry(tileSize, tileSize, tileSize);
                         var material = new THREE.MeshLambertMaterial({
@@ -88,7 +89,7 @@ function init() {
                         });
                         break;
                 }
-                if(layout[y][z][x] !== 0) {
+                if(layout[y][z][x].type !== 0) {
                     let mesh = new THREE.Mesh(box, material);
                     mesh.position.setX(x*tileSize);
                     mesh.position.setY(-y*tileSize);
