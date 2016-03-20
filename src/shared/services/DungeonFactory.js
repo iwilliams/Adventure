@@ -1,4 +1,5 @@
 import {TILE_AIR, TILE_FLOOR, TILE_WALL} from '../constants/DungeonConstants';
+import * as Rng from '../utils/Rng';
 
 function createTile(type, item = null) {
     return {
@@ -10,8 +11,8 @@ function createTile(type, item = null) {
 export function generateDungeon() {
 
     let dungeonHeight = 3;
-    let dungeonWidth  = 5;
-    let dungeonDepth  = 5;
+    let dungeonWidth  = 10;
+    let dungeonDepth  = 10;
 
     let tiles = [];
     for(let y = 0; y < dungeonHeight; y++) {
@@ -31,6 +32,10 @@ export function generateDungeon() {
                     tileToAdd = createTile(TILE_WALL);
                 } else if(y === 2) {
                     tileToAdd = createTile(TILE_FLOOR);
+                }
+
+                if(y === 1 && tileToAdd.type === TILE_AIR && Rng.d10() > 7) {
+                    tileToAdd = createTile(TILE_AIR, 0);
                 }
 
                 tiles[y][z].push(tileToAdd);

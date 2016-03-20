@@ -58,8 +58,10 @@ buildTasks.push('simulation-worker');
 // Vendor Scripts
 gulp.task('vendor-scripts', function() {
     return gulp.src([
-        //includes.pixi  + 'pixi.min.js',
-        //includes.three  + 'examples/js/controls/TrackballControls.js',
+        //includes.three + 'three.min.js',
+        //includes.three + 'examples/js/loaders/DDSLoader.js',
+        //includes.three + 'examples/js/loaders/MTLLoader.js',
+        //includes.three + 'examples/js/loaders/OBJLoader.js'
     ])
     .pipe(concat('vendor.js'))
     .pipe(uglify())

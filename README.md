@@ -27,12 +27,12 @@ This code comes with no warranty.
 - [x] Implement Basic Renderer
 - [x] Animation Interpolation
 - [ ] Implement Lighting System
-- [ ] Import Models
+- [x] Import Models
 - [ ] Bumpmap Textures
 - [ ] Split Up Rendering Code Into Views/View-Controllers
 - [ ] Allow Export of Screenshots and WebM
 - [x] Basic Dungeon Data Structure
-- [ ] Add Support for Dungeon Verticality
+- [ ] Add Support for Dungeon Verticality - (half way done)
 - [ ] Implement Dungeon Generation Algorithm
 - [x] Basic Player Movement
 - [ ] Flesh Out Game Mechanics
