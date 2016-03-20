@@ -37,7 +37,6 @@ worker.onmessage = function(e) {
                     object.scale.set(3, 3, 3);
                     crate = object;
                     init();
-                    //scene.add( object );
                 }
             );
 
