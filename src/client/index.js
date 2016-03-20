@@ -19,7 +19,28 @@ worker.onmessage = function(e) {
     // MessageType constants make this a bit more clear
     switch(messageType) {
         case MessageTypes.INITIALIZE:
-            init();
+
+            // instantiate a loader
+            var loader = new THREE.JSONLoader();
+
+            // load a resource
+            loader.load(
+                // resource URL
+                '/assets/models/untitled.json',
+                // Function when resource is loaded
+                function ( geometry, materials ) {
+                    var material = new THREE.MultiMaterial( materials );
+                    var object = new THREE.Mesh( geometry, material );
+                    object.position.y = -tileSize - (tileSize/2);
+                    object.position.x = 2*tileSize;
+                    object.position.z = tileSize;
+                    object.scale.set(3, 3, 3);
+                    crate = object;
+                    init();
+                    //scene.add( object );
+                }
+            );
+
             break;
         case MessageTypes.CREATE_STORE:
             createStore(payload);
@@ -30,7 +51,7 @@ worker.onmessage = function(e) {
     }
 }
 
-var scene, camera, renderer, mouseX, mouseY;
+var scene, camera, renderer, mouseX, mouseY, crate;
 
 var tiles = [];
 window.tiles = tiles;
@@ -68,48 +89,9 @@ function init() {
     texture2.wrapS = texture2.wrapT = THREE.RepeatWrapping;
     texture2.repeat.set(5, 5);
 
-    var directionalLight = new THREE.DirectionalLight( 0xffeedd );
-    directionalLight.position.set( tileSize, -tileSize, tileSize).normalize();
-    scene.add( directionalLight );
-
-    var light = new THREE.AmbientLight( 0xaaaaaa ); // soft white light
+    var light = new THREE.AmbientLight( 0x777777 ); // soft white light
     scene.add( light );
 
-    // instantiate a loader
-    var loader = new THREE.JSONLoader();
-
-    // load a resource
-    loader.load(
-        // resource URL
-        '/assets/throne.json',
-        // Function when resource is loaded
-        function ( geometry, materials ) {
-            var material = new THREE.MultiMaterial( materials );
-            var object = new THREE.Mesh( geometry, material );
-            object.position.y = -tileSize;
-            object.position.x = 2*tileSize;
-            object.position.z = tileSize;
-            //object.scale.set(10, 10, 10);
-            window.crate = object;
-
-            scene.add( object );
-        }
-    );
-
-    //var objLoader = new THREE.OBJLoader();
-    //var material = new THREE.MeshBasicMaterial({color: 'yellow'});
-    //objLoader.load('/assets/models/crate.obj', function (obj) {
-        //obj.traverse(function (child) {
-            //if (child instanceof THREE.Mesh) {
-                //child.material = material;
-            //}
-        //});
-        //window.crate = obj;
-        //obj.position.y = -tileSize;
-        //obj.position.x = 2*tileSize;
-        //obj.position.z = tileSize;
-        //scene.add(obj);
-    //});
 
     // Draw floor layout
     for(let y = 0; y < layout.length; y++) {
@@ -146,7 +128,12 @@ function init() {
                 }
 
                 if(tile.item === 0) {
-                    console.log('item');
+                    let newCrate = crate.clone()
+                    newCrate.position.y = -tileSize - (tileSize/2);
+                    newCrate.position.x = x*tileSize;
+                    newCrate.position.z = z*tileSize;
+
+                    scene.add(newCrate);
                 }
             }
         }
