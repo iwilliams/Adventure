@@ -22,3 +22,4 @@ export const PATCH_STORE        = constIterator++;
  */
 export const PLAYER_MOVE        = constIterator++;
 export const PLAYER_TURN        = constIterator++;
+export const PLAYER_INVESTIGATE = constIterator++;
