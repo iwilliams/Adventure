@@ -26,7 +26,7 @@ worker.onmessage = function(e) {
             // load a resource
             loader.load(
                 // resource URL
-                'assets/models/vase.json',
+                'assets/models/pot.json',
                 // Function when resource is loaded
                 function ( geometry, materials ) {
                     var material = new THREE.MultiMaterial( materials );
@@ -34,7 +34,7 @@ worker.onmessage = function(e) {
                     object.position.y = -tileSize - (tileSize/2);
                     object.position.x = 2*tileSize;
                     object.position.z = tileSize;
-                    object.scale.set(1, 1, 1);
+                    object.scale.set(2, 2, 2);
                     crate = object;
                     init();
                 }
@@ -66,7 +66,7 @@ function init() {
     scene.fog = new THREE.FogExp2(0x000A00, .06);
 
     camera = new THREE.PerspectiveCamera(...[
-            90,
+            60,
             window.innerWidth / window.innerHeight,
             1,
             10000
@@ -159,7 +159,7 @@ function init() {
     let z            = playerState.get('z');
 
     camera.position.x = x*tileSize;
-    camera.position.y = -y*tileSize;
+    camera.position.y = -y*tileSize*1.5;
     camera.position.z = z*tileSize;
 
 
