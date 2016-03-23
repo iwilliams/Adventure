@@ -356,6 +356,10 @@ window.onkeydown = function(e) {
                 //window.camera.rotation.set(0, rotation.y - Math.PI/2, 0, 'XYZ');
                 worker.postMessage([MessageTypes.PLAYER_TURN, 1]);
                 break;
+            // Space
+            case 32:
+                worker.postMessage([MessageTypes.PLAYER_INVESTIGATE]);
+                break;
         }
     }
 }
