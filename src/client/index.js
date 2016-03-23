@@ -26,7 +26,7 @@ worker.onmessage = function(e) {
             // load a resource
             loader.load(
                 // resource URL
-                'assets/models/crate.json',
+                'assets/models/vase.json',
                 // Function when resource is loaded
                 function ( geometry, materials ) {
                     var material = new THREE.MultiMaterial( materials );
@@ -34,7 +34,7 @@ worker.onmessage = function(e) {
                     object.position.y = -tileSize - (tileSize/2);
                     object.position.x = 2*tileSize;
                     object.position.z = tileSize;
-                    object.scale.set(3, 3, 3);
+                    object.scale.set(1, 1, 1);
                     crate = object;
                     init();
                 }
