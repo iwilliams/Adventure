@@ -78,6 +78,9 @@ function tick(deltaTime) {
                     'data': dir
                 });
                 break;
+            case MessageConstants.PLAYER_INVESTIGATE:
+
+                break;
         }
     }
 
