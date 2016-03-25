@@ -79,6 +79,29 @@ function tick(deltaTime) {
                 });
                 break;
             case MessageConstants.PLAYER_INVESTIGATE:
+                var floorState  = floorStore.getState();
+                var layout      = floorState.get('layout');
+
+                switch(dir) {
+                    case 0:
+                        z = z - 1;
+                        break;
+                    case 1:
+                        x = x + 1;
+                        break;
+                    case 2:
+                        z = z + 1;
+                        break;
+                    case 3:
+                        x = x - 1;
+                        break;
+                }
+
+                if(layout[y] !== undefined &&
+                        layout[y][z][x] !== undefined &&
+                        layout[y][z][x].item !== null) {
+                    console.log('investigate');
+                }
 
                 break;
         }
