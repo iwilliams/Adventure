@@ -26,7 +26,7 @@ worker.onmessage = function(e) {
             // load a resource
             loader.load(
                 // resource URL
-                'assets/models/pot.json',
+                'assets/models/zombie.json',
                 // Function when resource is loaded
                 function ( geometry, materials ) {
                     var material = new THREE.MultiMaterial( materials );
