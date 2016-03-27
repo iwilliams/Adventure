@@ -13,6 +13,27 @@ postMessage([
     MessageConstants.INITIALIZE
 ]);
 
+function getNextTile(x, y, z, dir, delta, tiles) {
+    switch(dir) {
+        case 0:
+            z = z - delta;
+            break;
+        case 1:
+            x = x + delta;
+            break;
+        case 2:
+            z = z + delta;
+            break;
+        case 3:
+            x = x - delta;
+            break;
+    }
+
+    if(tiles[y] !== undefined && tiles[y][z] !== undefined && tiles[y][z][x] !== undefined)
+        return tiles[y][z][x];
+    else return false;
+}
+
 let moveTick = 0,
     turnTick = 0;
 function tick(deltaTime) {
@@ -39,33 +60,16 @@ function tick(deltaTime) {
                 // Don't know why this is cast as string
                 payload = parseInt(payload);
 
-                switch(dir) {
-                    case 0:
-                        z = z - payload;
-                        break;
-                    case 1:
-                        x = x + payload;
-                        break;
-                    case 2:
-                        z = z + payload;
-                        break;
-                    case 3:
-                        x = x - payload;
-                        break;
-                }
-
-                // Check collision
-                if(layout[y] !== undefined &&
-                        layout[y][z][x] !== undefined &&
-                        layout[y][z][x].type === 0 &&
-                        layout[y+1][z][x] !== undefined &&
-                        layout[y+1][z][x].type !== 0 &&
-                        layout[y][z][x].item === null) {
-                    moveTick = 0;
-                    gameDispatcher.dispatch({
-                        'action': 'moveTo',
-                        'data': [x, z]
-                    });
+                let nextTile = getNextTile(x, y, z, dir, payload, layout);
+                if(nextTile && nextTile.type === 0 && nextTile.item === null) {
+                    let underTile = getNextTile(x, y+1, z, dir, payload, layout);
+                    if(underTile && underTile.type !== 0) {
+                        moveTick = 0;
+                        gameDispatcher.dispatch({
+                            'action': 'moveTo',
+                            'data': [nextTile.x, nextTile.z]
+                        });
+                    }
                 }
                 break;
             case MessageConstants.PLAYER_TURN:
@@ -82,24 +86,9 @@ function tick(deltaTime) {
                 var floorState  = floorStore.getState();
                 var layout      = floorState.get('layout');
 
-                switch(dir) {
-                    case 0:
-                        z = z - 1;
-                        break;
-                    case 1:
-                        x = x + 1;
-                        break;
-                    case 2:
-                        z = z + 1;
-                        break;
-                    case 3:
-                        x = x - 1;
-                        break;
-                }
+                let nextTile = getNextTile(x, y, z, dir, 1, layout);
 
-                if(layout[y] !== undefined &&
-                        layout[y][z][x] !== undefined &&
-                        layout[y][z][x].item !== null) {
+                if(nextTile && nextTile.item !== null) {
                     console.log('investigate');
                 }
 
