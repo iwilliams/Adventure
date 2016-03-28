@@ -6,13 +6,26 @@ import * as GameConstants       from '../shared/constants/GameConstants';
 import * as Stores              from '../shared/constants/StoreConstants';
 import * as MessageConstants    from '../shared/constants/MessageConstants';
 
+// Create player and floor stores
 let playerStore = StoreFactory.create(Stores.PLAYER_STORE);
 let floorStore  = StoreFactory.create(Stores.FLOOR_STORE);
 
+// Let client know we are ready to go
 postMessage([
     MessageConstants.INITIALIZE
 ]);
 
+// Listen for messages
+let messageQueue = [];
+onmessage = function(e) {
+    let data         = e.data;
+    let messageType  = data.shift();
+    let payload      = data;
+
+    messageQueue.push([messageType, payload]);
+}
+
+// Helper tile for getting next tile when given position, direction, and delta
 function getNextTile(x, y, z, dir, delta, tiles) {
     switch(dir) {
         case 0:
@@ -111,14 +124,7 @@ function tick(deltaTime) {
         }
     }
 }
+
+// Start simulation loop
 MainLoop.setSimulationTimestep(1000/GameConstants.SIMULATION_FPS);
 MainLoop.setUpdate(tick).start();
-
-let messageQueue = [];
-onmessage = function(e) {
-    let data         = e.data;
-    let messageType  = data.shift();
-    let payload      = data;
-
-    messageQueue.push([messageType, payload]);
-}

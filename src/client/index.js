@@ -6,11 +6,9 @@ import * as StoreConstants  from '../shared/constants/StoreConstants';
 import Immutable            from 'immutable';
 import THREE                from 'three';
 
-/**
- * Set up server
- */
+// Set up simulation thread
 let worker = new Worker('./server/index.js');
-window.worker = worker;
+
 worker.onmessage = function(e) {
     let data         = e.data;
     let messageType  = data.shift();
@@ -50,6 +48,7 @@ worker.onmessage = function(e) {
     }
 }
 
+// Dumb globals, change this
 var scene, camera, renderer, mouseX, mouseY, crate;
 
 var tiles = [];
@@ -58,7 +57,9 @@ window.tiles = tiles;
 var tileSize = GameConstants.TILE_SIZE;
 var playerStore;
 
-var controls;
+/*
+ * Initialize world
+ */
 function init() {
 
     scene = new THREE.Scene();
@@ -77,6 +78,7 @@ function init() {
     let floorState   = floorStore.getState();
     let layout       = floorState.get('layout').toJS();
 
+    // These need to be streamlined somehow
     var textureLoader = new THREE.TextureLoader();
 
     var texture1 = textureLoader.load("assets/floor_texture.png");
@@ -90,7 +92,6 @@ function init() {
 
     var light = new THREE.AmbientLight( 0x777777 ); // soft white light
     scene.add( light );
-
 
     // Draw floor layout
     for(let y = 0; y < layout.length; y++) {
@@ -127,7 +128,8 @@ function init() {
                 }
 
                 if(tile.item === 0) {
-                    let newCrate = crate.clone()
+                    let newCrate = crate.clone();
+                    // Hacky y-pos right now
                     newCrate.position.y = -tileSize - (tileSize/2);
                     newCrate.position.x = x*tileSize;
                     newCrate.position.z = z*tileSize;
@@ -141,36 +143,19 @@ function init() {
     renderer = new THREE.WebGLRenderer();
     renderer.setSize( window.innerWidth, window.innerHeight );
 
-    window.onresize = e => {
+    // Handle resize event
+    window.addEventListener('resize', e => {
         camera.aspect = window.innerWidth / window.innerHeight;
         camera.updateProjectionMatrix();
-
         renderer.setSize( window.innerWidth, window.innerHeight );
-    }
+    });
 
     document.body.appendChild( renderer.domElement );
 
     playerStore  = StoreFactory.getByType(StoreConstants.PLAYER_STORE)[0];
     window.playerStore = playerStore;
 
-    let playerState  = playerStore.getState();
-    let x            = playerState.get('x');
-    let y            = playerState.get('y');
-    let z            = playerState.get('z');
-
-    camera.position.x = x*tileSize;
-    camera.position.y = -y*tileSize*1.5;
-    camera.position.z = z*tileSize;
-
-
-    let v = new THREE.Vector3(...[
-        camera.position.x + tileSize,
-        camera.position.y,
-        camera.position.z
-    ]);
-
-    camera.lookAt(v);
-
+    // Start animating
     requestAnimationFrame(animate);
 }
 
@@ -217,36 +202,36 @@ function animate(currentTime) {
 
         let moveOffset = moveTick*tileSize;
 
-        if((movingTo.get(0) < x && dir === 1) ||
-           (movingTo.get(0) > x && dir === 3) ||
-           (movingTo.get(1) > z && dir === 0) ||
-           (movingTo.get(1) < z && dir === 2)) {
+        if ((movingTo.get(1) > z && dir === GameConstants.DIR_NORTH) ||
+            (movingTo.get(0) < x && dir === GameConstants.DIR_EAST)  ||
+            (movingTo.get(1) < z && dir === GameConstants.DIR_SOUTH) ||
+            (movingTo.get(0) > x && dir === GameConstants.DIR_WEST)) {
             moveOffset *= -1;
         }
 
         switch (dir) {
-            case 0:
+            case GameConstants.DIR_NORTH:
                 camera.position.x = x*tileSize;
                 camera.position.z = z*tileSize - moveOffset;
                 break;
-            case 1:
+            case GameConstants.DIR_EAST:
                 camera.position.x = x*tileSize + moveOffset;
                 camera.position.z = z*tileSize;
                 break;
-            case 2:
+            case GameConstants.DIR_SOUTH:
                 camera.position.x = x*tileSize;
                 camera.position.z = z*tileSize + moveOffset;
                 break;
-            case 3:
+            case GameConstants.DIR_WEST:
                 camera.position.x = x*tileSize - moveOffset;
                 camera.position.z = z*tileSize;
                 break;
         }
     } else {
         moveTick = 0;
-        camera.position.x = x*tileSize;
+        camera.position.x =  x*tileSize;
         camera.position.y = -y*tileSize;
-        camera.position.z = z*tileSize;
+        camera.position.z =  z*tileSize;
     }
 
     // Animate turning
@@ -254,13 +239,14 @@ function animate(currentTime) {
         turnTick += (turnSpeed*deltaTime/1000);
         turnTick = turnTick >= Math.PI/2 ? Math.PI/2 : turnTick
 
-        //let turnOffset = (-dir*Math.PI/2) + turnTick;
         let turnOffset = (-dir*Math.PI/2);
 
-        if(dir == 0 && turningTo == 1) turnOffset -= turnTick;
-        else if(dir == 1 && turningTo == 2) turnOffset -= turnTick;
-        else if(dir == 2 && turningTo == 3) turnOffset -= turnTick;
-        else if(dir == 3 && turningTo == 0) turnOffset -= turnTick;
+        // Turn to right
+        if     (dir === GameConstants.DIR_NORTH && turningTo == GameConstants.DIR_EAST)  turnOffset -= turnTick;
+        else if(dir === GameConstants.DIR_EAST  && turningTo == GameConstants.DIR_SOUTH) turnOffset -= turnTick;
+        else if(dir === GameConstants.DIR_SOUTH && turningTo == GameConstants.DIR_WEST)  turnOffset -= turnTick;
+        else if(dir === GameConstants.DIR_WEST  && turningTo == GameConstants.DIR_NORTH) turnOffset -= turnTick;
+        // Turn to left
         else turnOffset += turnTick;
 
         window.camera.rotation.set(0, turnOffset, 0, 'XYZ');
@@ -298,41 +284,39 @@ function patchStore(payload) {
     toPatch.patchState(patch);
 }
 
-document.getElementById('control-up').onclick = function() {
+// Define mobile input
+document.getElementById('control-up').addEventListener('click', e => {
     if(!playerStore.state.get('isMoving') && !playerStore.state.get('isTurning')) {
         moveTick = 0;
         worker.postMessage([MessageTypes.PLAYER_MOVE, 1]);
     }
-};
+});
 
-document.getElementById('control-down').onclick = function() {
+document.getElementById('control-down').addEventListener('click', e => {
     if(!playerStore.state.get('isMoving') && !playerStore.state.get('isTurning')) {
         moveTick = 0;
         worker.postMessage([MessageTypes.PLAYER_MOVE, -1]);
     }
-};
+});
 
-document.getElementById('control-left').onclick = function() {
+document.getElementById('control-left').addEventListener('click', e => {
     if(!playerStore.state.get('isMoving') && !playerStore.state.get('isTurning'))
         worker.postMessage([MessageTypes.PLAYER_TURN, -1]);
-};
+});
 
-document.getElementById('control-right').onclick = function() {
+document.getElementById('control-right').addEventListener('click', e => {
     if(!playerStore.state.get('isMoving') && !playerStore.state.get('isTurning'))
         worker.postMessage([MessageTypes.PLAYER_TURN, 1]);
-};
+});
 
-/**
- * Change player dir
- */
-window.onkeydown = function(e) {
+// Define controls
+window.addEventListener('keydown', e => {
     if(!playerStore.state.get('isMoving') && !playerStore.state.get('isTurning')) {
         switch(e.keyCode) {
             // Left
             case 65:
             case 72:
             case 37:
-                //window.camera.rotation.set(0, rotation.y + Math.PI/2, 0, 'XYZ');
                 worker.postMessage([MessageTypes.PLAYER_TURN, -1]);
                 break;
             // Back
@@ -353,7 +337,6 @@ window.onkeydown = function(e) {
             case 68:
             case 76:
             case 39:
-                //window.camera.rotation.set(0, rotation.y - Math.PI/2, 0, 'XYZ');
                 worker.postMessage([MessageTypes.PLAYER_TURN, 1]);
                 break;
             // Space
@@ -362,4 +345,4 @@ window.onkeydown = function(e) {
                 break;
         }
     }
-}
+});
