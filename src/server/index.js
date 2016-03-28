@@ -37,15 +37,7 @@ function getNextTile(x, y, z, dir, delta, tiles) {
 let moveTick = 0,
     turnTick = 0;
 function tick(deltaTime) {
-    var playerState = playerStore.getState();
-    var x           = playerState.get('x');
-    var y           = playerState.get('y');
-    var z           = playerState.get('z');
-    var dir         = playerState.get('dir');
-    var isMoving    = playerState.get('isMoving');
-    var isTurning   = playerState.get('isTurning');
-    var speed       = playerState.get('speed');
-    var turnSpeed   = playerState.get('turnSpeed');
+    var { x, y, z, dir, isMoving, isTurning, speed, turnSpeed } = playerStore.getState().toObject();
 
     // Proccess queued input
     while(messageQueue.length) {
@@ -53,14 +45,13 @@ function tick(deltaTime) {
         // MessageType constants make this a bit more clear
         switch(messageType) {
             case MessageConstants.PLAYER_MOVE:
-
                 var floorState  = floorStore.getState();
                 var layout      = floorState.get('layout');
 
                 // Don't know why this is cast as string
                 payload = parseInt(payload);
 
-                let nextTile = getNextTile(x, y, z, dir, payload, layout);
+                var nextTile = getNextTile(x, y, z, dir, payload, layout);
                 if(nextTile && nextTile.type === 0 && nextTile.item === null) {
                     let underTile = getNextTile(x, y+1, z, dir, payload, layout);
                     if(underTile && underTile.type !== 0) {
@@ -86,7 +77,7 @@ function tick(deltaTime) {
                 var floorState  = floorStore.getState();
                 var layout      = floorState.get('layout');
 
-                let nextTile = getNextTile(x, y, z, dir, 1, layout);
+                var nextTile = getNextTile(x, y, z, dir, 1, layout);
 
                 if(nextTile && nextTile.item !== null) {
                     console.log('investigate');
