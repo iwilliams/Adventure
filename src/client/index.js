@@ -49,7 +49,7 @@ worker.onmessage = function(e) {
 }
 
 // Dumb globals, change this
-var scene, camera, renderer, mouseX, mouseY, crate;
+var scene, camera, renderer, crate;
 
 var tiles = [];
 window.tiles = tiles;
@@ -167,6 +167,7 @@ let lastTime    = null,
 
 // Animation frame
 function animate(currentTime) {
+    // Calculate time since last render pass
     if(!lastTime) {
         deltaTime   = 1;
         lastTime    = currentTime;
@@ -175,6 +176,7 @@ function animate(currentTime) {
         lastTime    = currentTime;
     }
 
+    // Schedule next render
     requestAnimationFrame(animate);
 
     // This needs to be re-thought
