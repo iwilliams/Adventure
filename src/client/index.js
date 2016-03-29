@@ -26,17 +26,24 @@ worker.onmessage = function(e) {
             // load a resource
             loader.load(
                 // resource URL
-                'assets/models/zombie.json',
-                // Function when resource is loaded
+               'assets/models/test_animation.json',
+               // Function when resource is loaded
                 function ( geometry, materials ) {
+
+										for(var k in materials){
+											materials[k].skinning = true
+										}
+
                     var material = new THREE.MultiMaterial( materials );
-                    var object = new THREE.Mesh( geometry, material );
+                    var object = new THREE.SkinnedMesh( geometry, material );
+
                     object.position.y = -tileSize - (tileSize/2);
                     object.position.x = 2*tileSize;
                     object.position.z = tileSize;
                     object.scale.set(2, 2, 2);
                     crate = object;
                     init();
+										console.log(crate)
                 }
             );
 
@@ -57,11 +64,12 @@ window.tiles = tiles;
 
 var tileSize = GameConstants.TILE_SIZE;
 var playerStore;
-
+var mixer;
 var controls;
 function init() {
 
     scene = new THREE.Scene();
+		mixer = new THREE.AnimationMixer(crate);
 
     scene.fog = new THREE.FogExp2(0x000A00, .06);
 
@@ -133,6 +141,11 @@ function init() {
                     newCrate.position.z = z*tileSize;
 
                     scene.add(newCrate);
+										console.log(newCrate.geometry.animations)
+										newCrate.geometry.animations[0].name = "_"+x+"_"+y;
+										let action = mixer.clipAction( newCrate.geometry.animations[0],newCrate)
+												action.loop = THREE.LoopRepeat
+												action.play()
                 }
             }
         }
@@ -189,6 +202,8 @@ function animate(currentTime) {
         deltaTime   = currentTime - lastTime;
         lastTime    = currentTime;
     }
+
+		mixer.update(.125)
 
     requestAnimationFrame(animate);
 
