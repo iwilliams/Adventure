@@ -23,7 +23,8 @@ export default class PlayerStore extends BaseStore {
             'isTurning': false,
             'movingTo': null,
             'turningTo': null,
-            'dir': DIR_EAST
+            'dir': DIR_EAST,
+            'inventory': []
         });
     }
 
@@ -69,6 +70,9 @@ export default class PlayerStore extends BaseStore {
                     }
                     return dir;
                 })
+                break;
+            case 'inventory':
+                state = state.updateIn(['inventory'], inventory => inventory.push(1));
                 break;
         }
 

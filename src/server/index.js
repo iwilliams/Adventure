@@ -94,6 +94,9 @@ function tick(deltaTime) {
 
                 if(nextTile && nextTile.item !== null) {
                     console.log('investigate');
+                    gameDispatcher.dispatch({
+                        'action': 'inventory'
+                    });
                 }
 
                 break;
