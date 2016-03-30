@@ -30,12 +30,22 @@ worker.onmessage = function(e) {
                // Function when resource is loaded
                 function ( geometry, materials ) {
 
+									if(geometry.animations){
 										for(var k in materials){
 											materials[k].skinning = true
 										}
+									}
 
-                    var material = new THREE.MultiMaterial( materials );
+									//normals workaround
+										if(materials[0].normalScale){
+											materials[0].normalScale.x = 1
+											materials[0].normalScale.y = 1
+										}
+
+									console.log(materials)
+                  	var material = new THREE.MultiMaterial( materials );
                     var object = new THREE.SkinnedMesh( geometry, material );
+										console.log ( object ) 
 
                     object.position.y = -tileSize - (tileSize/2);
                     object.position.x = 2*tileSize;
@@ -98,6 +108,19 @@ function init() {
 
     var light = new THREE.AmbientLight( 0x777777 ); // soft white light
     scene.add( light );
+/*
+		var pointLight = new THREE.PointLight( 0xffffff, 1.25, 1000 );
+
+				pointLight.position.set( 0, 0, 600 );
+
+				scene.add( pointLight );
+
+				*/
+		var directionalLight = new THREE.DirectionalLight( 0xffffff );
+				directionalLight.position.set( 1, -0.5, -1 );
+
+				scene.add( directionalLight );
+
 
 
     // Draw floor layout
@@ -141,11 +164,12 @@ function init() {
                     newCrate.position.z = z*tileSize;
 
                     scene.add(newCrate);
-										console.log(newCrate.geometry.animations)
-										newCrate.geometry.animations[0].name = "_"+x+"_"+y;
-										let action = mixer.clipAction( newCrate.geometry.animations[0],newCrate)
+										if(newCrate.geometry.animations){
+											newCrate.geometry.animations[0].name = "_"+x+"_"+y;
+											let action = mixer.clipAction( newCrate.geometry.animations[0],newCrate)
 												action.loop = THREE.LoopRepeat
 												action.play()
+										}
                 }
             }
         }
