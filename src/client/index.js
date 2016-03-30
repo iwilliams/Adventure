@@ -311,8 +311,11 @@ document.getElementById('control-right').addEventListener('click', e => {
         worker.postMessage([MessageTypes.PLAYER_TURN, 1]);
 });
 
+let showInventory = false;
+
 // Define controls
 window.addEventListener('keydown', e => {
+    console.log(`Key Code: ${e.keyCode}`);
     if(!playerStore.state.get('isMoving') && !playerStore.state.get('isTurning')) {
         switch(e.keyCode) {
             // Left
@@ -344,6 +347,24 @@ window.addEventListener('keydown', e => {
             // Space
             case 32:
                 worker.postMessage([MessageTypes.PLAYER_INVESTIGATE]);
+                break;
+            // Tab
+            case 9:
+                e.preventDefault();
+                let inventoryElement = document.getElementById('inventory');
+                if(!showInventory) {
+                    let inventory = playerStore.getState().get('inventory').toArray();
+                    let ul = document.createElement('ul');
+                    inventory.forEach(item => {
+                        let li = document.createElement('li');
+                        li.innerHTML = 'Potion';
+                        ul.appendChild(li);
+                    });
+                    inventoryElement.appendChild(ul);
+                } else {
+                    inventoryElement.innerHTML = '';
+                }
+                showInventory = !showInventory;
                 break;
         }
     }
