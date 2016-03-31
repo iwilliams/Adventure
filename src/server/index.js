@@ -5,6 +5,7 @@ import gameDispatcher       from '../shared/dispatcher/GameDispatcher';
 import * as GameConstants       from '../shared/constants/GameConstants';
 import * as Stores              from '../shared/constants/StoreConstants';
 import * as MessageConstants    from '../shared/constants/MessageConstants';
+import * as Rng                 from '../shared/utils/Rng';
 
 // Create player and floor stores
 let playerStore = StoreFactory.create(Stores.PLAYER_STORE);
@@ -93,10 +94,11 @@ function tick(deltaTime) {
                 var nextTile = getNextTile(x, y, z, dir, 1, layout);
 
                 if(nextTile && nextTile.item !== null) {
-                    console.log('investigate');
-                    gameDispatcher.dispatch({
-                        'action': 'inventory'
-                    });
+                    if(Rng.d10() > 5) {
+                        gameDispatcher.dispatch({
+                            'action': 'inventory'
+                        });
+                    }
                 }
 
                 break;
