@@ -94,11 +94,9 @@ function tick(deltaTime) {
                 var nextTile = getNextTile(x, y, z, dir, 1, layout);
 
                 if(nextTile && nextTile.item !== null) {
-                    if(Rng.d10() > 5) {
-                        gameDispatcher.dispatch({
-                            'action': 'inventory'
-                        });
-                    }
+                    gameDispatcher.dispatch({
+                        'action': 'inventory'
+                    });
                 }
 
                 break;
