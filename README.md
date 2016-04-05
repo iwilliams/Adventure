@@ -28,6 +28,8 @@ This code comes with no warranty.
 - [x] Animation Interpolation
 - [ ] Implement Lighting System
 - [x] Import Models
+- [ ] Figure Out Model Animatons
+- [ ] Better Asset Loading
 - [ ] Bumpmap Textures
 - [ ] Split Up Rendering Code Into Views/View-Controllers
 - [ ] Allow Export of Screenshots and WebM
@@ -37,7 +39,8 @@ This code comes with no warranty.
 - [x] Basic Player Movement
 - [ ] Flesh Out Game Mechanics
 - [ ] Implement Battle System
+- [ ] Implement Inventory
+- [ ] Implement Player Equipment
 - [ ] Seperate Engine Code from Game Code
 - [x] Native Desktop App Build
 - [ ] Native Mobile App Build
-- [ ] Add More Tasks

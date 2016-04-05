@@ -5,26 +5,53 @@ import gameDispatcher       from '../shared/dispatcher/GameDispatcher';
 import * as GameConstants       from '../shared/constants/GameConstants';
 import * as Stores              from '../shared/constants/StoreConstants';
 import * as MessageConstants    from '../shared/constants/MessageConstants';
+import * as Rng                 from '../shared/utils/Rng';
 
+// Create player and floor stores
 let playerStore = StoreFactory.create(Stores.PLAYER_STORE);
 let floorStore  = StoreFactory.create(Stores.FLOOR_STORE);
 
+// Let client know we are ready to go
 postMessage([
     MessageConstants.INITIALIZE
 ]);
 
+// Listen for messages
+let messageQueue = [];
+onmessage = function(e) {
+    let data         = e.data;
+    let messageType  = data.shift();
+    let payload      = data;
+
+    messageQueue.push([messageType, payload]);
+}
+
+// Helper tile for getting next tile when given position, direction, and delta
+function getNextTile(x, y, z, dir, delta, tiles) {
+    switch(dir) {
+        case 0:
+            z = z - delta;
+            break;
+        case 1:
+            x = x + delta;
+            break;
+        case 2:
+            z = z + delta;
+            break;
+        case 3:
+            x = x - delta;
+            break;
+    }
+
+    if(tiles[y] !== undefined && tiles[y][z] !== undefined && tiles[y][z][x] !== undefined)
+        return tiles[y][z][x];
+    else return false;
+}
+
 let moveTick = 0,
     turnTick = 0;
 function tick(deltaTime) {
-    var playerState = playerStore.getState();
-    var x           = playerState.get('x');
-    var y           = playerState.get('y');
-    var z           = playerState.get('z');
-    var dir         = playerState.get('dir');
-    var isMoving    = playerState.get('isMoving');
-    var isTurning   = playerState.get('isTurning');
-    var speed       = playerState.get('speed');
-    var turnSpeed   = playerState.get('turnSpeed');
+    var { x, y, z, dir, isMoving, isTurning, speed, turnSpeed } = playerStore.getState().toObject();
 
     // Proccess queued input
     while(messageQueue.length) {
@@ -32,40 +59,22 @@ function tick(deltaTime) {
         // MessageType constants make this a bit more clear
         switch(messageType) {
             case MessageConstants.PLAYER_MOVE:
-
                 var floorState  = floorStore.getState();
                 var layout      = floorState.get('layout');
 
                 // Don't know why this is cast as string
                 payload = parseInt(payload);
 
-                switch(dir) {
-                    case 0:
-                        z = z - payload;
-                        break;
-                    case 1:
-                        x = x + payload;
-                        break;
-                    case 2:
-                        z = z + payload;
-                        break;
-                    case 3:
-                        x = x - payload;
-                        break;
-                }
-
-                // Check collision
-                if(layout[y] !== undefined &&
-                        layout[y][z][x] !== undefined &&
-                        layout[y][z][x].type === 0 &&
-                        layout[y+1][z][x] !== undefined &&
-                        layout[y+1][z][x].type !== 0 &&
-                        layout[y][z][x].item === null) {
-                    moveTick = 0;
-                    gameDispatcher.dispatch({
-                        'action': 'moveTo',
-                        'data': [x, z]
-                    });
+                var nextTile = getNextTile(x, y, z, dir, payload, layout);
+                if(nextTile && nextTile.type === 0 && nextTile.item === null) {
+                    let underTile = getNextTile(x, y+1, z, dir, payload, layout);
+                    if(underTile && underTile.type !== 0) {
+                        moveTick = 0;
+                        gameDispatcher.dispatch({
+                            'action': 'moveTo',
+                            'data': [nextTile.x, nextTile.z]
+                        });
+                    }
                 }
                 break;
             case MessageConstants.PLAYER_TURN:
@@ -82,25 +91,12 @@ function tick(deltaTime) {
                 var floorState  = floorStore.getState();
                 var layout      = floorState.get('layout');
 
-                switch(dir) {
-                    case 0:
-                        z = z - 1;
-                        break;
-                    case 1:
-                        x = x + 1;
-                        break;
-                    case 2:
-                        z = z + 1;
-                        break;
-                    case 3:
-                        x = x - 1;
-                        break;
-                }
+                var nextTile = getNextTile(x, y, z, dir, 1, layout);
 
-                if(layout[y] !== undefined &&
-                        layout[y][z][x] !== undefined &&
-                        layout[y][z][x].item !== null) {
-                    console.log('investigate');
+                if(nextTile && nextTile.item !== null) {
+                    gameDispatcher.dispatch({
+                        'action': 'inventory'
+                    });
                 }
 
                 break;
@@ -131,14 +127,7 @@ function tick(deltaTime) {
         }
     }
 }
+
+// Start simulation loop
 MainLoop.setSimulationTimestep(1000/GameConstants.SIMULATION_FPS);
 MainLoop.setUpdate(tick).start();
-
-let messageQueue = [];
-onmessage = function(e) {
-    let data         = e.data;
-    let messageType  = data.shift();
-    let payload      = data;
-
-    messageQueue.push([messageType, payload]);
-}

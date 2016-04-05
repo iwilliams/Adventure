@@ -6,11 +6,53 @@ import * as StoreConstants  from '../shared/constants/StoreConstants';
 import Immutable            from 'immutable';
 import THREE                from 'three';
 
-/**
- * Set up server
- */
+// Set up simulation thread
 let worker = new Worker('./server/index.js');
-window.worker = worker;
+
+// Temporary asset list
+const assets = {
+    models: [
+        {
+            "name": "pot",
+            "src": "assets/models/pot.json",
+            "scale": [2, 2, 2]
+        },
+        {
+            "name": "imp",
+            "src": "assets/models/imp.json",
+            "scale": [3, 3, 3]
+        },
+        {
+            "name": "mummy",
+            "src": "assets/models/mummy.json",
+            "scale": [3, 3, 3]
+        },
+        {
+            "name": "dragon",
+            "src": "assets/models/dragon.json"
+        },
+        {
+            "name": "orc",
+            "src": "assets/models/orc.json"
+        }
+    ],
+    textures: [
+        {
+            "name": "floor",
+            "src": "assets/floor_texture.png",
+            "repeat": [5, 5]
+        },
+        {
+            "name": "wall",
+            "src": "assets/wall_texture.png",
+            "repeat": [5, 5]
+        }
+    ]
+}
+
+// Temporary store for loaded assets
+let loadedAssets = {};
+
 worker.onmessage = function(e) {
     let data         = e.data;
     let messageType  = data.shift();
@@ -20,42 +62,71 @@ worker.onmessage = function(e) {
     switch(messageType) {
         case MessageTypes.INITIALIZE:
 
-            // instantiate a loader
-            var loader = new THREE.JSONLoader();
+            // Store loaded resources
+            let resourcePromises = [];
 
-            // load a resource
-            loader.load(
-                // resource URL
-               'assets/models/test_animation.json',
-               // Function when resource is loaded
-                function ( geometry, materials ) {
+            // Load models
+            if(assets.models && assets.models.length > 0) {
+                loadedAssets.models = {};
 
-									if(geometry.animations){
-										for(var k in materials){
-											materials[k].skinning = true
-										}
-									}
+                // instantiate a loader
+                var modelLoader = new THREE.JSONLoader();
 
-									//normals workaround
-										if(materials[0].normalScale){
-											materials[0].normalScale.x = 1
-											materials[0].normalScale.y = 1
-										}
+                // Load each model
+                assets.models.forEach(model => {
+                    resourcePromises.push(new Promise((res, rej) => {
+                        modelLoader.load(model.src, (geometry, materials) => {
 
-									console.log(materials)
-                  	var material = new THREE.MultiMaterial( materials );
-                    var object = new THREE.SkinnedMesh( geometry, material );
-										console.log ( object ) 
+                            if(geometry.animations){
+                                for(var k in materials){
+                                    materials[k].skinning = true
+                                }
+                            }
 
-                    object.position.y = -tileSize - (tileSize/2);
-                    object.position.x = 2*tileSize;
-                    object.position.z = tileSize;
-                    object.scale.set(2, 2, 2);
-                    crate = object;
-                    init();
-										console.log(crate)
-                }
-            );
+                            //normals workaround
+                            if(materials[0].normalScale){
+                                materials[0].normalScale.x = 1
+                                materials[0].normalScale.y = 1
+                            }
+
+                            var material = new THREE.MultiMaterial( materials );
+                            var object = new THREE.Mesh( geometry, material );
+                            if(model.scale) {
+                                object.scale.set(...model.scale);
+                            }
+                            loadedAssets.models[model.name] = object;
+                            res();
+                        });
+                    }));
+                });
+            }
+
+            // Load Textures
+            if(assets.textures && assets.textures.length > 0) {
+                loadedAssets.textures = {};
+
+                // instantiate a loader
+                var textureLoader = new THREE.TextureLoader();
+
+                // Load each texture
+                assets.textures.forEach(texture => {
+                    resourcePromises.push(new Promise((res, rej) => {
+                        textureLoader.load(texture.src, loadedTexture => {
+
+                            if(texture.repeat) {
+                                loadedTexture.wrapS = loadedTexture.wrapT = THREE.RepeatWrapping;
+                                loadedTexture.repeat.set(...texture.repeat);
+                            }
+
+                            loadedAssets.textures[texture.name] = loadedTexture;
+                            res();
+                        });
+                    }));
+                });
+            }
+
+            // Load all resources
+            Promise.all(resourcePromises).then(init);
 
             break;
         case MessageTypes.CREATE_STORE:
@@ -67,7 +138,8 @@ worker.onmessage = function(e) {
     }
 }
 
-var scene, camera, renderer, mouseX, mouseY, crate;
+// Dumb globals, change this
+var scene, camera, renderer, crate;
 
 var tiles = [];
 window.tiles = tiles;
@@ -75,11 +147,14 @@ window.tiles = tiles;
 var tileSize = GameConstants.TILE_SIZE;
 var playerStore;
 var mixer;
-var controls;
+
+/*
+ * Initialize world
+ */
 function init() {
 
     scene = new THREE.Scene();
-		mixer = new THREE.AnimationMixer(crate);
+    mixer = new THREE.AnimationMixer(crate);
 
     scene.fog = new THREE.FogExp2(0x000A00, .06);
 
@@ -95,17 +170,6 @@ function init() {
     let floorState   = floorStore.getState();
     let layout       = floorState.get('layout').toJS();
 
-    var textureLoader = new THREE.TextureLoader();
-
-    var texture1 = textureLoader.load("assets/floor_texture.png");
-    var texture2 = textureLoader.load("assets/wall_texture.png");
-
-    texture1.wrapS = texture1.wrapT = THREE.RepeatWrapping;
-    texture1.repeat.set(5, 5);
-
-    texture2.wrapS = texture2.wrapT = THREE.RepeatWrapping;
-    texture2.repeat.set(5, 5);
-
     var light = new THREE.AmbientLight( 0x777777 ); // soft white light
     scene.add( light );
 /*
@@ -116,11 +180,9 @@ function init() {
 				scene.add( pointLight );
 
 				*/
-		var directionalLight = new THREE.DirectionalLight( 0xffffff );
-				directionalLight.position.set( 1, -0.5, -1 );
-
-				scene.add( directionalLight );
-
+    var directionalLight = new THREE.DirectionalLight( 0xffffff );
+    directionalLight.position.set( 1, -0.5, -1 );
+    scene.add( directionalLight );
 
 
     // Draw floor layout
@@ -135,14 +197,14 @@ function init() {
                         var box = new THREE.BoxGeometry(tileSize, tileSize, tileSize);
                         var material = new THREE.MeshLambertMaterial({
                             color: 0xffffff,
-                            map: texture1
+                            map: loadedAssets.textures.floor
                         });
                         break;
                     case 2:
                         var box = new THREE.BoxGeometry(tileSize, tileSize, tileSize);
                         var material = new THREE.MeshLambertMaterial({
                             color: 0xffffff,
-                            map: texture2
+                            map: loadedAssets.textures.wall
                         });
                         break;
                 }
@@ -158,18 +220,21 @@ function init() {
                 }
 
                 if(tile.item === 0) {
-                    let newCrate = crate.clone()
+                    // Change the model being loaded here
+                    let newCrate = loadedAssets.models.imp.clone();
+                    // Hacky y-pos right now
                     newCrate.position.y = -tileSize - (tileSize/2);
                     newCrate.position.x = x*tileSize;
                     newCrate.position.z = z*tileSize;
 
                     scene.add(newCrate);
-										if(newCrate.geometry.animations){
-											newCrate.geometry.animations[0].name = "_"+x+"_"+y;
-											let action = mixer.clipAction( newCrate.geometry.animations[0],newCrate)
-												action.loop = THREE.LoopRepeat
-												action.play()
-										}
+                    if(newCrate.geometry.animations) {
+                        newCrate.geometry.animations[0].name = "_"+x+"_"+y;
+
+                        let action = mixer.clipAction( newCrate.geometry.animations[0],newCrate)
+                        action.loop = THREE.LoopRepeat
+                        action.play()
+                    }
                 }
             }
         }
@@ -178,36 +243,19 @@ function init() {
     renderer = new THREE.WebGLRenderer();
     renderer.setSize( window.innerWidth, window.innerHeight );
 
-    window.onresize = e => {
+    // Handle resize event
+    window.addEventListener('resize', e => {
         camera.aspect = window.innerWidth / window.innerHeight;
         camera.updateProjectionMatrix();
-
         renderer.setSize( window.innerWidth, window.innerHeight );
-    }
+    });
 
     document.body.appendChild( renderer.domElement );
 
     playerStore  = StoreFactory.getByType(StoreConstants.PLAYER_STORE)[0];
     window.playerStore = playerStore;
 
-    let playerState  = playerStore.getState();
-    let x            = playerState.get('x');
-    let y            = playerState.get('y');
-    let z            = playerState.get('z');
-
-    camera.position.x = x*tileSize;
-    camera.position.y = -y*tileSize*1.5;
-    camera.position.z = z*tileSize;
-
-
-    let v = new THREE.Vector3(...[
-        camera.position.x + tileSize,
-        camera.position.y,
-        camera.position.z
-    ]);
-
-    camera.lookAt(v);
-
+    // Start animating
     requestAnimationFrame(animate);
 }
 
@@ -219,6 +267,7 @@ let lastTime    = null,
 
 // Animation frame
 function animate(currentTime) {
+    // Calculate time since last render pass
     if(!lastTime) {
         deltaTime   = 1;
         lastTime    = currentTime;
@@ -227,8 +276,9 @@ function animate(currentTime) {
         lastTime    = currentTime;
     }
 
-		mixer.update(.125)
+    mixer.update(.125)
 
+    // Schedule next render
     requestAnimationFrame(animate);
 
     // This needs to be re-thought
@@ -256,36 +306,36 @@ function animate(currentTime) {
 
         let moveOffset = moveTick*tileSize;
 
-        if((movingTo.get(0) < x && dir === 1) ||
-           (movingTo.get(0) > x && dir === 3) ||
-           (movingTo.get(1) > z && dir === 0) ||
-           (movingTo.get(1) < z && dir === 2)) {
+        if ((movingTo.get(1) > z && dir === GameConstants.DIR_NORTH) ||
+            (movingTo.get(0) < x && dir === GameConstants.DIR_EAST)  ||
+            (movingTo.get(1) < z && dir === GameConstants.DIR_SOUTH) ||
+            (movingTo.get(0) > x && dir === GameConstants.DIR_WEST)) {
             moveOffset *= -1;
         }
 
         switch (dir) {
-            case 0:
+            case GameConstants.DIR_NORTH:
                 camera.position.x = x*tileSize;
                 camera.position.z = z*tileSize - moveOffset;
                 break;
-            case 1:
+            case GameConstants.DIR_EAST:
                 camera.position.x = x*tileSize + moveOffset;
                 camera.position.z = z*tileSize;
                 break;
-            case 2:
+            case GameConstants.DIR_SOUTH:
                 camera.position.x = x*tileSize;
                 camera.position.z = z*tileSize + moveOffset;
                 break;
-            case 3:
+            case GameConstants.DIR_WEST:
                 camera.position.x = x*tileSize - moveOffset;
                 camera.position.z = z*tileSize;
                 break;
         }
     } else {
         moveTick = 0;
-        camera.position.x = x*tileSize;
+        camera.position.x =  x*tileSize;
         camera.position.y = -y*tileSize;
-        camera.position.z = z*tileSize;
+        camera.position.z =  z*tileSize;
     }
 
     // Animate turning
@@ -293,13 +343,14 @@ function animate(currentTime) {
         turnTick += (turnSpeed*deltaTime/1000);
         turnTick = turnTick >= Math.PI/2 ? Math.PI/2 : turnTick
 
-        //let turnOffset = (-dir*Math.PI/2) + turnTick;
         let turnOffset = (-dir*Math.PI/2);
 
-        if(dir == 0 && turningTo == 1) turnOffset -= turnTick;
-        else if(dir == 1 && turningTo == 2) turnOffset -= turnTick;
-        else if(dir == 2 && turningTo == 3) turnOffset -= turnTick;
-        else if(dir == 3 && turningTo == 0) turnOffset -= turnTick;
+        // Turn to right
+        if     (dir === GameConstants.DIR_NORTH && turningTo == GameConstants.DIR_EAST)  turnOffset -= turnTick;
+        else if(dir === GameConstants.DIR_EAST  && turningTo == GameConstants.DIR_SOUTH) turnOffset -= turnTick;
+        else if(dir === GameConstants.DIR_SOUTH && turningTo == GameConstants.DIR_WEST)  turnOffset -= turnTick;
+        else if(dir === GameConstants.DIR_WEST  && turningTo == GameConstants.DIR_NORTH) turnOffset -= turnTick;
+        // Turn to left
         else turnOffset += turnTick;
 
         window.camera.rotation.set(0, turnOffset, 0, 'XYZ');
@@ -337,41 +388,42 @@ function patchStore(payload) {
     toPatch.patchState(patch);
 }
 
-document.getElementById('control-up').onclick = function() {
+// Define mobile input
+document.getElementById('control-up').addEventListener('click', e => {
     if(!playerStore.state.get('isMoving') && !playerStore.state.get('isTurning')) {
         moveTick = 0;
         worker.postMessage([MessageTypes.PLAYER_MOVE, 1]);
     }
-};
+});
 
-document.getElementById('control-down').onclick = function() {
+document.getElementById('control-down').addEventListener('click', e => {
     if(!playerStore.state.get('isMoving') && !playerStore.state.get('isTurning')) {
         moveTick = 0;
         worker.postMessage([MessageTypes.PLAYER_MOVE, -1]);
     }
-};
+});
 
-document.getElementById('control-left').onclick = function() {
+document.getElementById('control-left').addEventListener('click', e => {
     if(!playerStore.state.get('isMoving') && !playerStore.state.get('isTurning'))
         worker.postMessage([MessageTypes.PLAYER_TURN, -1]);
-};
+});
 
-document.getElementById('control-right').onclick = function() {
+document.getElementById('control-right').addEventListener('click', e => {
     if(!playerStore.state.get('isMoving') && !playerStore.state.get('isTurning'))
         worker.postMessage([MessageTypes.PLAYER_TURN, 1]);
-};
+});
 
-/**
- * Change player dir
- */
-window.onkeydown = function(e) {
+let showInventory = false;
+
+// Define controls
+window.addEventListener('keydown', e => {
+    console.log(`Key Code: ${e.keyCode}`);
     if(!playerStore.state.get('isMoving') && !playerStore.state.get('isTurning')) {
         switch(e.keyCode) {
             // Left
             case 65:
             case 72:
             case 37:
-                //window.camera.rotation.set(0, rotation.y + Math.PI/2, 0, 'XYZ');
                 worker.postMessage([MessageTypes.PLAYER_TURN, -1]);
                 break;
             // Back
@@ -392,13 +444,30 @@ window.onkeydown = function(e) {
             case 68:
             case 76:
             case 39:
-                //window.camera.rotation.set(0, rotation.y - Math.PI/2, 0, 'XYZ');
                 worker.postMessage([MessageTypes.PLAYER_TURN, 1]);
                 break;
             // Space
             case 32:
                 worker.postMessage([MessageTypes.PLAYER_INVESTIGATE]);
                 break;
+            // Tab
+            case 9:
+                e.preventDefault();
+                let inventoryElement = document.getElementById('inventory');
+                if(!showInventory) {
+                    let inventory = playerStore.getState().get('inventory').toArray();
+                    let ul = document.createElement('ul');
+                    inventory.forEach(item => {
+                        let li = document.createElement('li');
+                        li.innerHTML = 'Potion';
+                        ul.appendChild(li);
+                    });
+                    inventoryElement.appendChild(ul);
+                } else {
+                    inventoryElement.innerHTML = '';
+                }
+                showInventory = !showInventory;
+                break;
         }
     }
-}
+});
