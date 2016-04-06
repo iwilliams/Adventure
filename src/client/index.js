@@ -5,6 +5,7 @@ import * as GameConstants   from '../shared/constants/GameConstants';
 import * as StoreConstants  from '../shared/constants/StoreConstants';
 import Immutable            from 'immutable';
 import THREE                from 'three';
+import resourceService      from './services/ResourceService';
 
 // Set up simulation thread
 let worker = new Worker('./server/index.js');
@@ -50,9 +51,6 @@ const assets = {
     ]
 }
 
-// Temporary store for loaded assets
-let loadedAssets = {};
-
 worker.onmessage = function(e) {
     let data         = e.data;
     let messageType  = data.shift();
@@ -61,73 +59,7 @@ worker.onmessage = function(e) {
     // MessageType constants make this a bit more clear
     switch(messageType) {
         case MessageTypes.INITIALIZE:
-
-            // Store loaded resources
-            let resourcePromises = [];
-
-            // Load models
-            if(assets.models && assets.models.length > 0) {
-                loadedAssets.models = {};
-
-                // instantiate a loader
-                var modelLoader = new THREE.JSONLoader();
-
-                // Load each model
-                assets.models.forEach(model => {
-                    resourcePromises.push(new Promise((res, rej) => {
-                        modelLoader.load(model.src, (geometry, materials) => {
-
-                            if(geometry.animations){
-                                for(var k in materials){
-                                    materials[k].skinning = true
-                                }
-                            }
-
-                            //normals workaround
-                            if(materials[0].normalScale){
-                                materials[0].normalScale.x = 1
-                                materials[0].normalScale.y = 1
-                            }
-
-                            var material = new THREE.MultiMaterial( materials );
-                            var object = new THREE.Mesh( geometry, material );
-                            if(model.scale) {
-                                object.scale.set(...model.scale);
-                            }
-                            loadedAssets.models[model.name] = object;
-                            res();
-                        });
-                    }));
-                });
-            }
-
-            // Load Textures
-            if(assets.textures && assets.textures.length > 0) {
-                loadedAssets.textures = {};
-
-                // instantiate a loader
-                var textureLoader = new THREE.TextureLoader();
-
-                // Load each texture
-                assets.textures.forEach(texture => {
-                    resourcePromises.push(new Promise((res, rej) => {
-                        textureLoader.load(texture.src, loadedTexture => {
-
-                            if(texture.repeat) {
-                                loadedTexture.wrapS = loadedTexture.wrapT = THREE.RepeatWrapping;
-                                loadedTexture.repeat.set(...texture.repeat);
-                            }
-
-                            loadedAssets.textures[texture.name] = loadedTexture;
-                            res();
-                        });
-                    }));
-                });
-            }
-
-            // Load all resources
-            Promise.all(resourcePromises).then(init);
-
+            resourceService.loadAssets(assets).then(init);
             break;
         case MessageTypes.CREATE_STORE:
             createStore(payload);
@@ -197,14 +129,14 @@ function init() {
                         var box = new THREE.BoxGeometry(tileSize, tileSize, tileSize);
                         var material = new THREE.MeshLambertMaterial({
                             color: 0xffffff,
-                            map: loadedAssets.textures.floor
+                            map: resourceService.getTexture('floor')
                         });
                         break;
                     case 2:
                         var box = new THREE.BoxGeometry(tileSize, tileSize, tileSize);
                         var material = new THREE.MeshLambertMaterial({
                             color: 0xffffff,
-                            map: loadedAssets.textures.wall
+                            map: resourceService.getTexture('wall')
                         });
                         break;
                 }
@@ -221,7 +153,7 @@ function init() {
 
                 if(tile.item === 0) {
                     // Change the model being loaded here
-                    let newCrate = loadedAssets.models.imp.clone();
+                    let newCrate = resourceService.getModel('pot');
                     // Hacky y-pos right now
                     newCrate.position.y = -tileSize - (tileSize/2);
                     newCrate.position.x = x*tileSize;
