@@ -24,6 +24,16 @@ const assets = {
             "scale": [3, 3, 3]
         },
         {
+            "name": "crab",
+            "src": "assets/models/crab.json",
+            //"scale": [3, 3, 3]
+        },
+        {
+            "name": "skeleton",
+            "src": "assets/models/skeleton.json",
+            //"scale": [3, 3, 3]
+        },
+        {
             "name": "mummy",
             "src": "assets/models/mummy.json",
             "scale": [3, 3, 3]
@@ -153,7 +163,7 @@ function init() {
 
                 if(tile.item === 0) {
                     // Change the model being loaded here
-                    let newCrate = resourceService.getModel('pot');
+                    let newCrate = resourceService.getModel('skeleton');
                     // Hacky y-pos right now
                     newCrate.position.y = -tileSize - (tileSize/2);
                     newCrate.position.x = x*tileSize;
