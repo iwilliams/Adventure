@@ -37,11 +37,33 @@ class ResourceService {
                         }
 
                         var material = new THREE.MultiMaterial( materials );
-                        var object = new THREE.Mesh( geometry, material );
+
+                        let modelObject = {};
+
+                        // If there are animations we need to make the correct mesh type
+                        // http://yomotsu.net/blog/2015/10/31/three-r73-anim.html -- Only hope
+                        if(geometry.animations) {
+                            var object = new THREE.SkinnedMesh( geometry, material );
+                            var mixer = new THREE.AnimationMixer( object );
+
+                            let animation = mixer.clipAction( geometry.animations[0] );
+                            animation.setEffectiveWeight(1);
+                            animation.play();
+
+                            modelObject.animationMixer = mixer;
+                        } else {
+                            var object = new THREE.Mesh( geometry, material );
+                        }
+
+                        // Do we need to scale the model?
                         if(model.scale) {
                             object.scale.set(...model.scale);
                         }
-                        this._models[model.name] = object;
+
+                        modelObject.model = object;
+
+                        // Register the model for lokup later
+                        this._models[model.name] = modelObject;
                         res();
                     });
                 }));
@@ -75,7 +97,11 @@ class ResourceService {
     }
 
     getModel(name) {
-        return this._models[name] ? this._models[name].clone() : undefined;
+        return this._models[name] ? this._models[name].model.clone() : undefined;
+    }
+
+    getAnimationMixer(name) {
+        return this._models[name] ? this._models[name].animationMixer : undefined;
     }
 
     getTexture(name) {
