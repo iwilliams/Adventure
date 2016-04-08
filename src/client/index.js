@@ -7,6 +7,8 @@ import Immutable            from 'immutable';
 import THREE                from 'three';
 import resourceService      from './services/ResourceService';
 
+window.THREE = THREE;
+
 // Set up simulation thread
 let worker = new Worker('./server/index.js');
 
@@ -24,10 +26,20 @@ const assets = {
             "scale": [3, 3, 3]
         },
         {
-            "name": "mummy",
-            "src": "assets/models/mummy.json",
-            "scale": [3, 3, 3]
+            "name": "crab",
+            "src": "assets/models/crab.json",
+            //"scale": [3, 3, 3]
         },
+        {
+            "name": "skeleton",
+            "src": "assets/models/skeleton.json",
+            //"scale": [3, 3, 3]
+        },
+        //{
+            //"name": "mummy",
+            //"src": "assets/models/mummy.json",
+            //"scale": [3, 3, 3]
+        //},
         {
             "name": "dragon",
             "src": "assets/models/dragon.json"
@@ -35,6 +47,11 @@ const assets = {
         {
             "name": "orc",
             "src": "assets/models/orc.json"
+        },
+        {
+            "name": "sheep",
+            "src": "assets/models/sheep.json",
+            "scale": [2, 2, 2]
         }
     ],
     textures: [
@@ -153,20 +170,20 @@ function init() {
 
                 if(tile.item === 0) {
                     // Change the model being loaded here
-                    let newCrate = resourceService.getModel('pot');
+                    let item = resourceService.getModel('sheep');
                     // Hacky y-pos right now
-                    newCrate.position.y = -tileSize - (tileSize/2);
-                    newCrate.position.x = x*tileSize;
-                    newCrate.position.z = z*tileSize;
+                    item.position.y = -tileSize - (tileSize/2);
+                    item.position.x = x*tileSize;
+                    item.position.z = z*tileSize;
 
-                    scene.add(newCrate);
-                    if(newCrate.geometry.animations) {
-                        newCrate.geometry.animations[0].name = "_"+x+"_"+y;
+                    scene.add(item);
+                    //if(newCrate.geometry.animations) {
+                        //newCrate.geometry.animations[0].name = "_"+x+"_"+y;
 
-                        let action = mixer.clipAction( newCrate.geometry.animations[0],newCrate)
-                        action.loop = THREE.LoopRepeat
-                        action.play()
-                    }
+                        //let action = mixer.clipAction( newCrate.geometry.animations[0],newCrate)
+                        //action.loop = THREE.LoopRepeat
+                        //action.play()
+                    //}
                 }
             }
         }
@@ -207,8 +224,6 @@ function animate(currentTime) {
         deltaTime   = currentTime - lastTime;
         lastTime    = currentTime;
     }
-
-    mixer.update(.125)
 
     // Schedule next render
     requestAnimationFrame(animate);
@@ -290,6 +305,8 @@ function animate(currentTime) {
         turnTick = 0;
         window.camera.rotation.set(0, -dir*Math.PI/2, 0, 'XYZ');
     }
+
+    resourceService.getAnimationMixer('sheep').update(deltaTime);
 
     renderer.render(scene, camera);
 }
