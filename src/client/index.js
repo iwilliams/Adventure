@@ -48,10 +48,11 @@ const assets = {
             "name": "orc",
             "src": "assets/models/orc.json"
         },
-        //{
-            //"name": "sheep",
-            //"src": "assets/models/sheep.json"
-        //}
+        {
+            "name": "sheep",
+            "src": "assets/models/sheep.json",
+            "scale": [2, 2, 2]
+        }
     ],
     textures: [
         {
@@ -169,7 +170,7 @@ function init() {
 
                 if(tile.item === 0) {
                     // Change the model being loaded here
-                    let item = resourceService.getModel('pot');
+                    let item = resourceService.getModel('sheep');
                     // Hacky y-pos right now
                     item.position.y = -tileSize - (tileSize/2);
                     item.position.x = x*tileSize;
@@ -304,6 +305,8 @@ function animate(currentTime) {
         turnTick = 0;
         window.camera.rotation.set(0, -dir*Math.PI/2, 0, 'XYZ');
     }
+
+    resourceService.getAnimationMixer('sheep').update(deltaTime);
 
     renderer.render(scene, camera);
 }

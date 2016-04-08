@@ -97,7 +97,8 @@ class ResourceService {
     }
 
     getModel(name) {
-        return this._models[name] ? this._models[name].model.clone() : undefined;
+        //return this._models[name] ? this._models[name].model.clone() : undefined;
+        return this._models[name] ? this._models[name].model : undefined;
     }
 
     getAnimationMixer(name) {
