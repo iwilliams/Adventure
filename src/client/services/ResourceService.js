@@ -46,7 +46,7 @@ class ResourceService {
                             var object = new THREE.SkinnedMesh( geometry, material );
                             var mixer = new THREE.AnimationMixer( object );
 
-                            let animation = mixer.clipAction( geometry.animations[0] );
+                            let animation = mixer.clipAction( object.geometry.animations[0] );
                             animation.setEffectiveWeight(1);
                             animation.play();
 

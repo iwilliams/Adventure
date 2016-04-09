@@ -7,8 +7,6 @@ import Immutable            from 'immutable';
 import THREE                from 'three';
 import resourceService      from './services/ResourceService';
 
-window.THREE = THREE;
-
 // Set up simulation thread
 let worker = new Worker('./server/index.js');
 
