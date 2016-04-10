@@ -33,11 +33,11 @@ const assets = {
             "src": "assets/models/skeleton.json",
             //"scale": [3, 3, 3]
         },
-        //{
-            //"name": "mummy",
-            //"src": "assets/models/mummy.json",
-            //"scale": [3, 3, 3]
-        //},
+        {
+            "name": "mummy",
+            "src": "assets/models/mummy.json",
+            "scale": [3, 3, 3]
+        },
         {
             "name": "dragon",
             "src": "assets/models/dragon.json"
@@ -49,6 +49,16 @@ const assets = {
         {
             "name": "sheep",
             "src": "assets/models/sheep.json",
+            "scale": [2, 2, 2]
+        },
+        {
+            "name": "fairy",
+            "src": "assets/models/fairy_2.json",
+            "scale": [2, 2, 2]
+        },
+        {
+            "name": "elf",
+            "src": "assets/models/elf_4.json",
             "scale": [2, 2, 2]
         }
     ],
@@ -166,7 +176,7 @@ function init() {
                 }
 
                 if(tile.item === 0) {
-                    let model = resourceService.getModel('sheep');
+                    let model = resourceService.getModel('fairy');
                     mixers.push(model.animations);
                     console.log(model);
                     // Change the model being loaded here
