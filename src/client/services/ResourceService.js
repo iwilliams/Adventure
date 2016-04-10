@@ -38,19 +38,10 @@ class ResourceService {
 
                         var material = new THREE.MultiMaterial( materials );
 
-                        let modelObject = {};
-
                         // If there are animations we need to make the correct mesh type
                         // http://yomotsu.net/blog/2015/10/31/three-r73-anim.html -- Only hope
                         if(geometry.animations) {
                             var object = new THREE.SkinnedMesh( geometry, material );
-                            var mixer = new THREE.AnimationMixer( object );
-
-                            let animation = mixer.clipAction( geometry.animations[0] );
-                            animation.setEffectiveWeight(1);
-                            animation.play();
-
-                            modelObject.animationMixer = mixer;
                         } else {
                             var object = new THREE.Mesh( geometry, material );
                         }
@@ -60,10 +51,8 @@ class ResourceService {
                             object.scale.set(...model.scale);
                         }
 
-                        modelObject.model = object;
-
                         // Register the model for lokup later
-                        this._models[model.name] = modelObject;
+                        this._models[model.name] = object;
                         res();
                     });
                 }));
@@ -96,13 +85,23 @@ class ResourceService {
         return Promise.all(resourcePromises);
     }
 
-    getModel(name) {
-        //return this._models[name] ? this._models[name].model.clone() : undefined;
-        return this._models[name] ? this._models[name].model : undefined;
+    getMeshAnimations(mesh) {
+        var mixer = new THREE.AnimationMixer( mesh );
+
+        let animation = mixer.clipAction( mesh.geometry.animations[0] );
+        animation.setEffectiveWeight(1);
+        animation.play();
+
+        return mixer;
     }
 
-    getAnimationMixer(name) {
-        return this._models[name] ? this._models[name].animationMixer : undefined;
+    getModel(name) {
+        let mesh = this._models[name] ? this._models[name].clone() : undefined;
+        if(mesh === undefined) throw `Model with name ${name} not found`;
+        return {
+            mesh: mesh,
+            animations: mesh.geometry.animations ? this.getMeshAnimations(mesh) : undefined
+        };
     }
 
     getTexture(name) {

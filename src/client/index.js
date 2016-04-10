@@ -7,8 +7,6 @@ import Immutable            from 'immutable';
 import THREE                from 'three';
 import resourceService      from './services/ResourceService';
 
-window.THREE = THREE;
-
 // Set up simulation thread
 let worker = new Worker('./server/index.js');
 
@@ -95,7 +93,7 @@ window.tiles = tiles;
 
 var tileSize = GameConstants.TILE_SIZE;
 var playerStore;
-var mixer;
+var mixers = [];
 
 /*
  * Initialize world
@@ -103,7 +101,6 @@ var mixer;
 function init() {
 
     scene = new THREE.Scene();
-    mixer = new THREE.AnimationMixer(crate);
 
     scene.fog = new THREE.FogExp2(0x000A00, .06);
 
@@ -169,21 +166,17 @@ function init() {
                 }
 
                 if(tile.item === 0) {
+                    let model = resourceService.getModel('sheep');
+                    mixers.push(model.animations);
+                    console.log(model);
                     // Change the model being loaded here
-                    let item = resourceService.getModel('sheep');
+                    let mesh = model.mesh;
                     // Hacky y-pos right now
-                    item.position.y = -tileSize - (tileSize/2);
-                    item.position.x = x*tileSize;
-                    item.position.z = z*tileSize;
+                    mesh.position.y = -tileSize - (tileSize/2);
+                    mesh.position.x = x*tileSize;
+                    mesh.position.z = z*tileSize;
 
-                    scene.add(item);
-                    //if(newCrate.geometry.animations) {
-                        //newCrate.geometry.animations[0].name = "_"+x+"_"+y;
-
-                        //let action = mixer.clipAction( newCrate.geometry.animations[0],newCrate)
-                        //action.loop = THREE.LoopRepeat
-                        //action.play()
-                    //}
+                    scene.add(mesh);
                 }
             }
         }
@@ -306,7 +299,8 @@ function animate(currentTime) {
         window.camera.rotation.set(0, -dir*Math.PI/2, 0, 'XYZ');
     }
 
-    resourceService.getAnimationMixer('sheep').update(deltaTime);
+    // Update all animations
+    mixers.forEach(mixer => mixer.update(deltaTime));
 
     renderer.render(scene, camera);
 }
