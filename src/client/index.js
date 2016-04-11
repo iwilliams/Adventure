@@ -60,6 +60,21 @@ const assets = {
             "name": "elf",
             "src": "assets/models/elf_4.json",
             "scale": [2, 2, 2]
+        },
+        {
+            "name": "centaur",
+            "src": "assets/models/centaur.json",
+            "scale": [4, 4, 4]
+        },
+        {
+            "name": "skullcrow",
+            "src": "assets/models/skullcrow.json",
+            "scale": [4, 4, 4]
+        },
+        {
+            "name": "squid",
+            "src": "assets/models/squid.json",
+            "scale": [3, 3, 3]
         }
     ],
     textures: [
@@ -310,7 +325,7 @@ function animate(currentTime) {
     }
 
     // Update all animations
-    mixers.forEach(mixer => mixer.update(deltaTime));
+    mixers.forEach(mixer => mixer && mixer.update(deltaTime));
 
     renderer.render(scene, camera);
 }
