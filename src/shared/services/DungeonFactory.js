@@ -38,8 +38,7 @@ export function generateDungeon() {
                 }
 
                 if(y === 1 && tileToAdd.type === TILE_AIR && Rng.d10() > 7) {
-                //if(y === 1 && x === 2 && z === 2) {
-                    tileToAdd = createTile(x, y, z, TILE_AIR, 0);
+                    tileToAdd = createTile(x, y, z, TILE_AIR, Rng.d4());
                 }
 
                 tiles[y][z].push(tileToAdd);

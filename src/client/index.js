@@ -75,6 +75,11 @@ const assets = {
             "name": "squid",
             "src": "assets/models/squid.json",
             "scale": [3, 3, 3]
+        },
+        {
+            "name": "siren",
+            "src": "assets/models/siren.json",
+            "scale": [3, 3, 3]
         }
     ],
     textures: [
@@ -190,8 +195,24 @@ function init() {
                     mesh.receiveShadow = true;
                 }
 
-                if(tile.item === 0) {
-                    let model = resourceService.getModel('fairy');
+                if(tile.item) {
+                    let modelName = "pot";
+                    switch(tile.item) {
+                        case 0:
+                           modelName = "pot";
+                           break;
+                        case 1:
+                           modelName = "sheep";
+                           break;
+                        case 2:
+                           //modelName = "skeleton";
+                           break;
+                        case 3:
+                           //modelName = "imp";
+                           break;
+                    }
+
+                    let model = resourceService.getModel(modelName);
                     mixers.push(model.animations);
                     console.log(model);
                     // Change the model being loaded here
