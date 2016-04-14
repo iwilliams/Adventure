@@ -31,7 +31,7 @@ const assets = {
         {
             "name": "skeleton",
             "src": "assets/models/skeleton.json",
-            //"scale": [3, 3, 3]
+            "scale": [3, 3, 3]
         },
         {
             "name": "mummy",
@@ -205,10 +205,10 @@ function init() {
                            modelName = "sheep";
                            break;
                         case 2:
-                           //modelName = "skeleton";
+                           modelName = "skeleton";
                            break;
                         case 3:
-                           //modelName = "imp";
+                           modelName = "fairy";
                            break;
                     }
 
