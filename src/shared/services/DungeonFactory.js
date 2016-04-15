@@ -1,13 +1,14 @@
 import {TILE_AIR, TILE_FLOOR, TILE_WALL} from '../constants/DungeonConstants';
 import * as Rng from '../utils/Rng';
 
-function createTile(x, y, z, type, item = null) {
+function createTile(x, y, z, type, item = null, encounter = null) {
     return {
         x: x,
         y: y,
         z: z,
         type: type,
-        item: item
+        item: item,
+        encounter: encounter
     };
 }
 
@@ -38,7 +39,9 @@ export function generateDungeon() {
                 }
 
                 if(y === 1 && tileToAdd.type === TILE_AIR && Rng.d10() > 7) {
-                    tileToAdd = createTile(x, y, z, TILE_AIR, Rng.d4());
+                    tileToAdd = createTile(x, y, z, TILE_AIR, 0, null);
+                } else if (Rng.d10() > 7) {
+                    tileToAdd = createTile(x, y, z, TILE_AIR, null, Rng.d4());
                 }
 
                 tiles[y][z].push(tileToAdd);

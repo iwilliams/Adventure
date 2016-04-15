@@ -195,9 +195,9 @@ function init() {
                     mesh.receiveShadow = true;
                 }
 
-                if(tile.item) {
+                if(tile.item || tile.encounter) {
                     let modelName = "pot";
-                    switch(tile.item) {
+                    switch(tile.item || tile.encounter) {
                         case 0:
                            modelName = "pot";
                            break;
